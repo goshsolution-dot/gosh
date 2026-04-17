@@ -1,0 +1,86 @@
+:root {
+  font-family: Inter, system-ui, sans-serif;
+  color: #111827;
+  background: #f8fafc;
+}
+
+body {
+  margin: 0;
+}
+
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 2rem;
+  background: #0f172a;
+  color: #fff;
+}
+
+.app-header a {
+  color: #fff;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.page-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.hero {
+  background: #e2e8f0;
+  padding: 2rem;
+  border-radius: 16px;
+}
+
+.filters,
+.solutions {
+  margin-top: 2rem;
+}
+
+.industry-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.industry-list button {
+  padding: 0.75rem 1rem;
+  background: #1d4ed8;
+  border: none;
+  color: white;
+  border-radius: 9999px;
+  cursor: pointer;
+}
+
+.solution-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.solution-card {
+  padding: 1.5rem;
+  border-radius: 16px;
+  background: white;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+}
+
+.solution-card a {
+  color: #1d4ed8;
+  font-weight: 600;
+}
+
+.admin-summary {
+  display: grid;
+  gap: 1rem;
+}
+
+.admin-summary div {
+  padding: 1rem;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.06);
+}

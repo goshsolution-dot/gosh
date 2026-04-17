@@ -1,0 +1,14 @@
+{
+  "name": "gosh-solutions-platform",
+  "private": true,
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "install-all": "npm install",
+    "dev:backend": "npm --workspace backend run dev",
+    "dev:frontend": "npm --workspace frontend run dev",
+    "start:backend": "npm --workspace backend run start"
+  }
+}
