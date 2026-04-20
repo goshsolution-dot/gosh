@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 
 type HomepageCard = {
   id: number;
@@ -28,6 +28,19 @@ function HomePage() {
   const [homepageData, setHomepageData] = useState<HomepageData>({ cards: [], backgrounds: [] });
   const [loading, setLoading] = useState(true);
   const [expandedCardId, setExpandedCardId] = useState<number | null>(null);
+  const [currentImageIndex, setCurrentImageIndex] = useState<number>(0);
+  const [carouselIndex, setCarouselIndex] = useState<number>(0);
+  const [isDemoFormOpen, setIsDemoFormOpen] = useState(false);
+  const [demoSubmitted, setDemoSubmitted] = useState(false);
+  const [whatsappLink, setWhatsappLink] = useState('');
+  const [demoSource, setDemoSource] = useState<'hero' | 'card' | null>(null);
+  const [demoForm, setDemoForm] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    business: '',
+    message: '',
+  });
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -50,14 +63,76 @@ function HomePage() {
     loadHomepage();
   }, []);
 
+  // Carousel rotation effect
+  useEffect(() => {
+    if (homepageData.cards.length === 0) return;
+    
+    const carouselInterval = setInterval(() => {
+      setCarouselIndex((prev) => (prev + 1) % homepageData.cards.length);
+    }, 5000); // Rotate every 5 seconds
+    
+    return () => clearInterval(carouselInterval);
+  }, [homepageData.cards.length]);
+
   const expandedCard = homepageData.cards.find((card) => card.id === expandedCardId);
+
+  const handleOpenDemoForm = (source: 'hero' | 'card' = 'hero') => {
+    setDemoSource(source);
+    setIsDemoFormOpen(true);
+    setDemoSubmitted(false);
+  };
+
+  const handleCloseDemoForm = () => {
+    setIsDemoFormOpen(false);
+    setDemoSubmitted(false);
+    setDemoForm({ name: '', email: '', phone: '', business: '', message: '' });
+    setWhatsappLink('');
+    setDemoSource(null);
+  };
+
+  const handleDemoFormSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const cardInfo = demoSource === 'card' && expandedCard ? `\nCard: ${expandedCard.title}` : '';
+    const message = `Hello GOSH Solutions, I would like to book a free demo.${cardInfo}\nName: ${demoForm.name}\nEmail: ${demoForm.email}\nPhone: ${demoForm.phone}\nBusiness: ${demoForm.business}\nDetails: ${demoForm.message}`;
+    setWhatsappLink(`https://wa.me/265xxxxxxxxx?text=${encodeURIComponent(message)}`);
+    setDemoSubmitted(true);
+  };
+
+  const handleNextImage = () => {
+    if (expandedCard && expandedCard.images.length > 0) {
+      setCurrentImageIndex((prev) => (prev + 1) % expandedCard.images.length);
+    }
+  };
+
+  const handlePrevImage = () => {
+    if (expandedCard && expandedCard.images.length > 0) {
+      setCurrentImageIndex((prev) => (prev - 1 + expandedCard.images.length) % expandedCard.images.length);
+    }
+  };
 
   return (
     <div className="homepage-page">
       {/* HERO SECTION */}
       <section className="hero-section" id="home">
+        <div className="hero-backgrounds">
+          {homepageData.backgrounds.map((background, index) => {
+            const imageStyle = background.imageData.trim().startsWith('linear-gradient')
+              ? background.imageData
+              : `url(${background.imageData})`;
+
+            return (
+              <div
+                key={background.id}
+                className={`hero-bg hero-bg-${index % 5}`}
+                style={{ backgroundImage: imageStyle }}
+                aria-hidden="true"
+              />
+            );
+          })}
+        </div>
         <div className="hero-container">
           <div className="hero-left">
+            <p className="hero-brand">GOSH SOLUTIONS</p>
             <h1 className="hero-headline">We Build Systems That Run Your Business</h1>
             <p className="hero-subhead">
               Hotel, Pharmacy, Bar, POS & Air BnB management software. <br />
@@ -67,9 +142,9 @@ function HomePage() {
               <a href="#systems" className="btn btn-primary btn-lg">
                 View Our Systems
               </a>
-              <a href="https://wa.me/265xxxxxxxxx" className="btn btn-secondary btn-lg" target="_blank" rel="noreferrer">
+              <button type="button" className="btn btn-secondary btn-lg" onClick={() => handleOpenDemoForm('hero')}>
                 Book Free Demo
-              </a>
+              </button>
             </div>
             <div className="trust-bar-hero">
               <span>✓ Trusted by 30+ businesses in Lilongwe & Blantyre</span>
@@ -84,6 +159,80 @@ function HomePage() {
           </div>
         </div>
       </section>
+
+      {isDemoFormOpen && (
+        <div className="demo-form-modal" role="dialog" aria-modal="true">
+          <div className="demo-form-content">
+            <button type="button" className="demo-form-close" onClick={handleCloseDemoForm}>
+              ✕
+            </button>
+            <div className="demo-form-header">
+              <h2>Book Your Free Demo</h2>
+              <p>Please complete this short form before continuing to WhatsApp.</p>
+            </div>
+            <form className="demo-form" onSubmit={handleDemoFormSubmit}>
+              <div className="demo-form-row">
+                <label>
+                  Name
+                  <input
+                    value={demoForm.name}
+                    onChange={(e) => setDemoForm((prev) => ({ ...prev, name: e.target.value }))}
+                    required
+                  />
+                </label>
+                <label>
+                  Email
+                  <input
+                    type="email"
+                    value={demoForm.email}
+                    onChange={(e) => setDemoForm((prev) => ({ ...prev, email: e.target.value }))}
+                    required
+                  />
+                </label>
+              </div>
+              <div className="demo-form-row">
+                <label>
+                  Phone
+                  <input
+                    value={demoForm.phone}
+                    onChange={(e) => setDemoForm((prev) => ({ ...prev, phone: e.target.value }))}
+                    required
+                  />
+                </label>
+                <label>
+                  Business
+                  <input
+                    value={demoForm.business}
+                    onChange={(e) => setDemoForm((prev) => ({ ...prev, business: e.target.value }))}
+                    required
+                  />
+                </label>
+              </div>
+              <label>
+                What would you like included in the demo?
+                <textarea
+                  value={demoForm.message}
+                  onChange={(e) => setDemoForm((prev) => ({ ...prev, message: e.target.value }))}
+                  rows={4}
+                />
+              </label>
+              <div className="demo-form-actions">
+                <button type="submit" className="btn btn-primary btn-lg">
+                  Continue to WhatsApp
+                </button>
+              </div>
+            </form>
+            {demoSubmitted && (
+              <div className="demo-whatsapp-actions">
+                <p>Great! Your demo details are ready to send.</p>
+                <a href={whatsappLink} target="_blank" rel="noreferrer" className="btn btn-secondary btn-lg">
+                  Open WhatsApp
+                </a>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* OUR SYSTEMS SECTION */}
       <section className="our-systems-section" id="systems">
@@ -107,25 +256,36 @@ function HomePage() {
             </div>
           ) : (
             <div className="systems-grid">
-              {homepageData.cards.map((card, index) => (
-                <article key={card.id} className="system-card" style={{ animationDelay: `${index * 0.1}s` }} onClick={() => setExpandedCardId(card.id)}>
-                  <div className="card-icon-wrapper">
-                    <span className="card-icon">{card.icon}</span>
-                  </div>
-                  <h3 className="card-title">{card.title}</h3>
-                  <p className="card-description">{card.subtitle}</p>
-                  {card.badgeText && <span className="card-mpesa-badge">{card.badgeText}</span>}
-                  <div className="card-actions">
-                    {card.demoLink ? (
-                      <a href={card.demoLink} className="btn-demo" target="_blank" rel="noreferrer">
-                        Live Demo →
-                      </a>
-                    ) : (
-                      <span className="btn-demo disabled">Coming Soon</span>
-                    )}
-                  </div>
-                </article>
-              ))}
+              {homepageData.cards.map((card, index) => {
+                const isRotating = index === carouselIndex;
+                return (
+                  <article
+                    key={card.id}
+                    className={`system-card ${isRotating ? 'rotating' : ''}`}
+                    style={{ animationDelay: `${index * 0.1}s` }}
+                    onClick={() => {
+                      setExpandedCardId(card.id);
+                      setCurrentImageIndex(0);
+                    }}
+                  >
+                    <div className="card-icon-wrapper">
+                      <span className="card-icon">{card.icon}</span>
+                    </div>
+                    <h3 className="card-title">{card.title}</h3>
+                    <p className="card-description">{card.subtitle}</p>
+                    {card.badgeText && <span className="card-mpesa-badge">{card.badgeText}</span>}
+                    <div className="card-actions">
+                      {card.demoLink ? (
+                        <a href={card.demoLink} className="btn-demo" target="_blank" rel="noreferrer">
+                          Live Demo →
+                        </a>
+                      ) : (
+                        <span className="btn-demo disabled">Coming Soon</span>
+                      )}
+                    </div>
+                  </article>
+                );
+              })}
             </div>
           )}
 
@@ -133,15 +293,105 @@ function HomePage() {
             <div className="expanded-card-modal" onClick={() => setExpandedCardId(null)}>
               <div className="expanded-card-content" onClick={(e) => e.stopPropagation()}>
                 <button className="close-modal-btn" onClick={() => setExpandedCardId(null)}>✕</button>
-                <h3>{expandedCard.title}</h3>
-                <p>{expandedCard.expandedText || expandedCard.subtitle}</p>
+                
+                {/* Image Gallery */}
                 {expandedCard.images.length > 0 && (
-                  <div className="expanded-images">
-                    {expandedCard.images.map((img, idx) => (
-                      <img key={idx} src={img} alt={`${expandedCard.title} ${idx + 1}`} />
-                    ))}
+                  <div className="expanded-image-gallery">
+                    <div className="gallery-main">
+                      <img src={expandedCard.images[currentImageIndex]} alt={`${expandedCard.title} ${currentImageIndex + 1}`} />
+                    </div>
+                    {expandedCard.images.length > 1 && (
+                      <div className="gallery-controls">
+                        <button className="gallery-arrow" onClick={handlePrevImage}>❮</button>
+                        <div className="gallery-indicators">
+                          {expandedCard.images.map((_, idx) => (
+                            <div
+                              key={idx}
+                              className={`indicator ${idx === currentImageIndex ? 'active' : ''}`}
+                              onClick={() => setCurrentImageIndex(idx)}
+                            />
+                          ))}
+                        </div>
+                        <button className="gallery-arrow" onClick={handleNextImage}>❯</button>
+                      </div>
+                    )}
                   </div>
                 )}
+
+                {/* Content Sections */}
+                <div className="expanded-card-body">
+                  <h2 className="expanded-card-title">{expandedCard.title}</h2>
+                  
+                  {expandedCard.badgeText && (
+                    <span className="expanded-card-badge">{expandedCard.badgeText}</span>
+                  )}
+
+                  <div className="expanded-card-section">
+                    <h3>Overview</h3>
+                    <p>{expandedCard.expandedText || expandedCard.subtitle}</p>
+                  </div>
+
+                  <div className="expanded-card-section">
+                    <h3>Key Features</h3>
+                    <ul className="features-list">
+                      <li>✓ Easy to use interface</li>
+                      <li>✓ Real-time reporting</li>
+                      <li>✓ Mobile-friendly design</li>
+                      <li>✓ Multi-user support</li>
+                      <li>✓ Data backup & security</li>
+                      <li>✓ Local support in Malawi</li>
+                    </ul>
+                  </div>
+
+                  <div className="expanded-card-section">
+                    <h3>Information</h3>
+                    <div className="info-grid">
+                      <div className="info-item">
+                        <span className="info-label">Setup Time:</span>
+                        <span className="info-value">1-3 days</span>
+                      </div>
+                      <div className="info-item">
+                        <span className="info-label">Support:</span>
+                        <span className="info-value">24/7 Local</span>
+                      </div>
+                      <div className="info-item">
+                        <span className="info-label">Training:</span>
+                        <span className="info-value">Included</span>
+                      </div>
+                      <div className="info-item">
+                        <span className="info-label">Updates:</span>
+                        <span className="info-value">Free forever</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="expanded-card-actions">
+                    <button
+                      className="btn btn-primary btn-lg"
+                      onClick={() => {
+                        handleOpenDemoForm('card');
+                        setExpandedCardId(null);
+                      }}
+                    >
+                      📅 Book Demo
+                    </button>
+                    <button
+                      className="btn btn-secondary btn-lg"
+                      onClick={() => {
+                        handleOpenDemoForm('card');
+                        setExpandedCardId(null);
+                      }}
+                    >
+                      ℹ️ More Information
+                    </button>
+                    {expandedCard.demoLink && (
+                      <a href={expandedCard.demoLink} target="_blank" rel="noreferrer" className="btn btn-outline btn-lg">
+                        🔗 Live Demo
+                      </a>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
           )}

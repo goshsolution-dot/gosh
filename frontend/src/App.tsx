@@ -23,35 +23,36 @@ function App() {
         <div className="header-logo">
           <Link to="/" onClick={handleNavClick} className="header-logo-link">
             <img src="http://localhost:5001/uploads/log.jpg" alt="GOSH Solutions logo" />
-            <div>
-              <span className="site-name">GOSH SOLUTIONS</span>
-              <small className="site-tagline">Malawi business systems</small>
-            </div>
           </Link>
         </div>
 
         <nav className="header-nav">
-          <Link to="/" onClick={handleNavClick}>Home</Link>
-          <a href="/#systems" onClick={handleNavClick}>Systems</a>
-          <Link to="/about" onClick={handleNavClick}>About</Link>
-          <Link to="/contact" onClick={handleNavClick}>Contact</Link>
-          <a
-            className="whatsapp-header-btn"
-            href="https://wa.me/265xxxxxxxxx"
-            target="_blank"
-            rel="noreferrer"
-          >
-            WhatsApp
-          </a>
-          <Link to="/admin" onClick={handleNavClick} className="admin-nav-link">Admin</Link>
-          <button
-            className="nav-menu-toggle"
-            onClick={() => setServiceDropdownOpen(!serviceDropdownOpen)}
-            type="button"
-            aria-label="Open mobile menu"
-          >
-            ☰
-          </button>
+          <div className="nav-group nav-group-left">
+            <Link to="/" onClick={handleNavClick}>Home</Link>
+            <a href="/#systems" onClick={handleNavClick}>Systems</a>
+            <Link to="/about" onClick={handleNavClick}>About</Link>
+            <Link to="/contact" onClick={handleNavClick}>Contact</Link>
+          </div>
+
+          <div className="nav-group nav-group-right">
+            <a
+              className="whatsapp-header-btn"
+              href="https://wa.me/265xxxxxxxxx"
+              target="_blank"
+              rel="noreferrer"
+            >
+              WhatsApp
+            </a>
+            <Link to="/admin" onClick={handleNavClick} className="admin-nav-link">Admin</Link>
+            <button
+              className="nav-menu-toggle"
+              onClick={() => setServiceDropdownOpen(!serviceDropdownOpen)}
+              type="button"
+              aria-label="Open mobile menu"
+            >
+              ☰
+            </button>
+          </div>
         </nav>
 
         {serviceDropdownOpen && (
