@@ -23,6 +23,7 @@ function App() {
         <div className="header-logo">
           <Link to="/" onClick={handleNavClick} className="header-logo-link">
             <img src="http://localhost:5001/uploads/log.jpg" alt="GOSH Solutions logo" />
+            <span className="company-name">GOSH SOLUTIONS</span>
           </Link>
         </div>
 
@@ -59,7 +60,7 @@ function App() {
           <div className="mobile-nav-menu">
             <Link to="/" onClick={() => { handleNavClick(); setServiceDropdownOpen(false); }}>Home</Link>
             <a href="/#systems" onClick={() => { handleNavClick(); setServiceDropdownOpen(false); }}>Systems</a>
-            <Link to="/about" onClick={() => { handleNavClick(); setServiceDropdownOpen(false); }}>About</Link>
+            <Link to="/about" onClick={() => { handleNavClick(); setServiceDropdownOpen(false); }}>About Us</Link>
             <Link to="/contact" onClick={() => { handleNavClick(); setServiceDropdownOpen(false); }}>Contact</Link>
             <a
               href="https://wa.me/265xxxxxxxxx"
@@ -69,7 +70,6 @@ function App() {
             >
               WhatsApp
             </a>
-            <Link to="/admin" onClick={() => { handleNavClick(); setServiceDropdownOpen(false); }}>Admin</Link>
           </div>
         )}
       </header>

@@ -45,6 +45,16 @@ main {
   text-decoration: none;
 }
 
+.company-name {
+  font-size: 1.2rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  background: linear-gradient(135deg, #fff 0%, #e0e0e0 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
 .header-nav {
   display: flex;
   align-items: center;
@@ -76,9 +86,10 @@ main {
   color: #fff;
   text-decoration: none;
   font-weight: 600;
-  padding: 0.65rem 1rem;
+  font-size: 1.15rem;
+  padding: 0.8rem 1.5rem;
   border-radius: 999px;
-  transition: background 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+  transition: all 0.3s ease;
   border: 1px solid transparent;
   background: rgba(255, 255, 255, 0.06);
 }
@@ -97,12 +108,16 @@ main {
 
 .whatsapp-header-btn {
   background: #25D366;
-  color: #0A3D62;
-  border-color: transparent;
+  color: white;
+  border-color: #25D366;
+  font-weight: 700;
 }
 
 .whatsapp-header-btn:hover {
-  background: #22c15c;
+  background: #1f8d52;
+  border-color: #1f8d52;
+  box-shadow: 0 6px 25px rgba(37, 211, 102, 0.4);
+  transform: translateY(-2px);
 }
 
 .nav-menu-toggle {
@@ -119,29 +134,45 @@ main {
   position: absolute;
   top: 100%;
   right: 1rem;
-  background: rgba(10, 61, 98, 0.98);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: linear-gradient(135deg, #0f172a 0%, #1a2d5c 100%);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 12px;
   margin-top: 0.5rem;
   padding: 1rem;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  min-width: 200px;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+  gap: 0.5rem;
+  min-width: 220px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
   z-index: 1001;
+  animation: slideInDown 0.3s ease-out;
 }
 
 .mobile-nav-menu a {
   color: white;
   text-decoration: none;
-  padding: 0.75rem 1rem;
+  padding: 0.9rem 1.2rem;
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.08);
+  transition: all 0.3s ease;
+  font-weight: 500;
 }
 
 .mobile-nav-menu a:hover {
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateX(4px);
+}
+
+@media (max-width: 768px) {
+  .mobile-nav-menu a[href*="wa.me"] {
+    background: #25D366;
+    color: white;
+    font-weight: 700;
+  }
+
+  .mobile-nav-menu a[href*="wa.me"]:hover {
+    background: #1f8d52;
+  }
 }
 
 .header-logo-link img {
@@ -1281,14 +1312,27 @@ button:disabled {
     gap: 0.5rem;
   }
 
-  .header-nav a,
-  .header-nav .admin-nav-link,
-  .whatsapp-header-btn {
+  .nav-group {
     display: none;
+  }
+
+  .admin-nav-link {
+    display: none !important;
   }
 
   .nav-menu-toggle {
     display: inline-flex;
+    background: #25D366;
+    border-color: #25D366;
+    color: white;
+    font-weight: 700;
+    font-size: 1.2rem;
+    padding: 0.8rem 1rem;
+  }
+
+  .nav-menu-toggle:hover {
+    background: #1f8d52;
+    border-color: #1f8d52;
   }
 
   .app-header a {
@@ -1578,15 +1622,22 @@ button:disabled {
   color: white;
   border: none;
   padding: 1rem 2rem;
-  border-radius: 5px;
+  border-radius: 8px;
   font-size: 1.1rem;
   cursor: pointer;
-  font-weight: 500;
-  transition: background 0.3s;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(52, 152, 219, 0.2);
 }
 
 .btn-primary:hover {
   background: #2980B9;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(52, 152, 219, 0.4);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
 }
 
 .btn-secondary {
@@ -1594,27 +1645,32 @@ button:disabled {
   color: white;
   border: 2px solid white;
   padding: 1rem 2rem;
-  border-radius: 5px;
+  border-radius: 8px;
   font-size: 1.1rem;
   cursor: pointer;
-  font-weight: 500;
-  transition: all 0.3s;
+  font-weight: 600;
+  transition: all 0.3s ease;
 }
 
 .btn-secondary:hover {
   background: white;
   color: #0A3D62;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(255, 255, 255, 0.3);
 }
 
 .btn-whatsapp {
-  background: #25D366;
-  color: white;
-  border-color: #25D366;
+  background: #25D366 !important;
+  color: white !important;
+  border-color: #25D366 !important;
+  font-weight: 700 !important;
 }
 
 .btn-whatsapp:hover {
-  background: #128C7E;
-  border-color: #128C7E;
+  background: #1f8d52 !important;
+  border-color: #1f8d52 !important;
+  box-shadow: 0 8px 25px rgba(37, 211, 102, 0.4) !important;
+  transform: translateY(-2px) !important;
 }
 
 .trust-bar {
@@ -3523,6 +3579,28 @@ button:disabled {
   align-items: center;
   justify-content: center;
   padding: 2rem;
+  backdrop-filter: blur(4px);
+  animation: fadeInOverlay 0.3s ease-out;
+}
+
+@keyframes fadeInOverlay {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideInModal {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .demo-form-content {
@@ -3532,6 +3610,7 @@ button:disabled {
   padding: 2.5rem;
   box-shadow: 0 30px 80px rgba(10, 32, 54, 0.25);
   position: relative;
+  animation: slideInModal 0.3s ease-out;
 }
 
 .demo-form-close {
@@ -3543,11 +3622,19 @@ button:disabled {
   font-size: 1.35rem;
   cursor: pointer;
   color: #0A3D62;
+  transition: all 0.2s ease;
+}
+
+.demo-form-close:hover {
+  color: #E74C3C;
+  transform: scale(1.2) rotate(90deg);
 }
 
 .demo-form-header h2 {
   margin: 0 0 0.5rem 0;
   color: #0A3D62;
+  font-size: 1.75rem;
+  font-weight: 800;
 }
 
 .demo-form-header p {
@@ -3757,6 +3844,18 @@ button:disabled {
 }
 
 @media (max-width: 768px) {
+  .app-header {
+    flex-wrap: wrap;
+  }
+
+  .header-logo {
+    min-width: 100%;
+  }
+
+  .header-nav {
+    display: none;
+  }
+
   .hero-section {
     height: auto;
     padding: 3rem 1.5rem;

@@ -586,7 +586,7 @@ function HomePage() {
             <div className="why-card">
               <div className="why-icon">🔒</div>
               <h3>Own Your Data</h3>
-              <p>Self-hosted option. No monthly USD fees to USA companies. Your data stays in Malawi.</p>
+              <p>Powerful Hosting Archtecture.</p>
             </div>
             <div className="why-card">
               <div className="why-icon">⚙️</div>
@@ -645,7 +645,7 @@ function HomePage() {
             </div>
             <div className="client-card">
               <div className="client-logo">SC</div>
-              <p className="client-result">M-Pesa + Cash reconciliation auto</p>
+              <p className="client-result">Airtelmoney and Mpamba </p>
               <p className="client-name">Shop Corner</p>
             </div>
             <div className="client-card">
@@ -696,7 +696,7 @@ function HomePage() {
           <p>Get set up this week. Join 30+ local businesses running on GOSH Systems.</p>
           <div className="cta-buttons">
             <a href="https://wa.me/265xxxxxxxxx" className="btn btn-white" target="_blank" rel="noreferrer">
-              📱 WhatsApp Us: +265 XX XXX XXXX
+              📱 WhatsApp Us: +265995718815
             </a>
             <a href="https://wa.me/265xxxxxxxxx" className="btn btn-outline" target="_blank" rel="noreferrer">
               Get Quote in 24hrs
@@ -715,17 +715,18 @@ function HomePage() {
           <div className="footer-column">
             <h4>Systems</h4>
             <ul>
-              <li>Hotel Management</li>
-              <li>Pharmacy System</li>
-              <li>Bar & Club POS</li>
-              <li>Air BnB Manager</li>
-              <li>Online Sales POS</li>
+              <li>Hotel Managements</li>
+              <li>Loan management Systems</li>
+              <li>Pharmacy Systems</li>
+              <li>Bar & Club Management Systems</li>
+              <li>Air BnB Management Systems</li>
+              <li>Online Sales Websites</li>
             </ul>
           </div>
           <div className="footer-column">
             <h4>Contact</h4>
             <p>Lilongwe, Area 3</p>
-            <p>+265 XX XXX XXXX</p>
+            <p>+265 995 718 815</p>
             <p>info@gosh-solutions.com</p>
           </div>
           <div className="footer-column">
