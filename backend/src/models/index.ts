@@ -49,12 +49,33 @@ interface EquipmentAttributes {
   available: boolean;
 }
 
+interface HomepageCardAttributes {
+  id: number;
+  title: string;
+  subtitle: string;
+  icon: string;
+  badgeText?: string;
+  demoLink?: string;
+  images: string;
+  expandedText?: string;
+  order: number;
+}
+
+interface HomepageBackgroundAttributes {
+  id: number;
+  title: string;
+  imageData: string;
+  order: number;
+}
+
 type IndustryModel = Model<IndustryAttributes, Optional<IndustryAttributes, 'id'>> & IndustryAttributes;
 type SolutionModel = Model<SolutionAttributes, Optional<SolutionAttributes, 'id'>> & SolutionAttributes;
 type CustomerModel = Model<CustomerAttributes, Optional<CustomerAttributes, 'id'>> & CustomerAttributes;
 type BookingModel = Model<BookingAttributes, Optional<BookingAttributes, 'id'>> & BookingAttributes;
 type PaymentModel = Model<PaymentAttributes, Optional<PaymentAttributes, 'id'>> & PaymentAttributes;
 type EquipmentModel = Model<EquipmentAttributes, Optional<EquipmentAttributes, 'id'>> & EquipmentAttributes;
+type HomepageCardModel = Model<HomepageCardAttributes, Optional<HomepageCardAttributes, 'id'>> & HomepageCardAttributes;
+type HomepageBackgroundModel = Model<HomepageBackgroundAttributes, Optional<HomepageBackgroundAttributes, 'id'>> & HomepageBackgroundAttributes;
 
 const Industry = sequelize.define<IndustryModel>('Industry', {
   id: { type: DataTypes.INTEGER.UNSIGNED, autoIncrement: true, primaryKey: true },
@@ -104,6 +125,25 @@ const Equipment = sequelize.define<EquipmentModel>('Equipment', {
   available: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: true },
 });
 
+const HomepageCard = sequelize.define<HomepageCardModel>('HomepageCard', {
+  id: { type: DataTypes.INTEGER.UNSIGNED, autoIncrement: true, primaryKey: true },
+  title: { type: DataTypes.STRING, allowNull: false },
+  subtitle: { type: DataTypes.TEXT, allowNull: false },
+  icon: { type: DataTypes.STRING, allowNull: false, defaultValue: '📦' },
+  badgeText: { type: DataTypes.STRING, allowNull: true },
+  demoLink: { type: DataTypes.STRING, allowNull: true },
+  images: { type: DataTypes.TEXT, allowNull: false, defaultValue: '[]' },
+  expandedText: { type: DataTypes.TEXT, allowNull: true },
+  order: { type: DataTypes.INTEGER.UNSIGNED, allowNull: false, defaultValue: 0 },
+});
+
+const HomepageBackground = sequelize.define<HomepageBackgroundModel>('HomepageBackground', {
+  id: { type: DataTypes.INTEGER.UNSIGNED, autoIncrement: true, primaryKey: true },
+  title: { type: DataTypes.STRING, allowNull: false },
+  imageData: { type: DataTypes.TEXT, allowNull: false },
+  order: { type: DataTypes.INTEGER.UNSIGNED, allowNull: false, defaultValue: 0 },
+});
+
 Industry.hasMany(Solution, { foreignKey: 'industryId', as: 'solutions' });
 Solution.belongsTo(Industry, { foreignKey: 'industryId', as: 'industry' });
 Customer.hasMany(Booking, { foreignKey: 'customerId', as: 'bookings' });
@@ -121,4 +161,6 @@ export {
   Booking,
   Payment,
   Equipment,
+  HomepageCard,
+  HomepageBackground,
 };

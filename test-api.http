@@ -1,0 +1,59 @@
+@baseUrl = http://localhost:5001
+
+### Admin Login
+POST {{baseUrl}}/api/admin/login
+Content-Type: application/json
+
+{
+  "email": "admin@gosh.local",
+  "password": "Password123"
+}
+
+### Create Hotel Card
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImFkbWluQGdvc2gubG9jYWwiLCJpYXQiOjE3MTM2NTY4MjN9.eS1yd3ZDSUs3Z2FfZVBVN1B6MS1vNEJvVjVGLXdQRWpfQ3Z6cHdLMG8xOA
+POST {{baseUrl}}/api/admin/homepage/cards
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "title": "Hotel Management System",
+  "subtitle": "Complete booking and operations management",
+  "icon": "🏨",
+  "expandedText": "Manage reservations, guest check-ins, room status, billing, and staff schedules in one integrated platform.",
+  "badgeText": "FEATURED",
+  "demoLink": "https://demo.gosh.local",
+  "order": 1
+}
+
+### Create Retail Card
+POST {{baseUrl}}/api/admin/homepage/cards
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "title": "Retail POS Solution",
+  "subtitle": "Point of sale and inventory tracking",
+  "icon": "🛒",
+  "expandedText": "Streamline checkout processes, manage inventory in real-time, track sales analytics.",
+  "badgeText": "POPULAR",
+  "demoLink": "https://demo.gosh.local",
+  "order": 2
+}
+
+### Create Pharmacy Card
+POST {{baseUrl}}/api/admin/homepage/cards
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "title": "Pharmacy Management",
+  "subtitle": "Prescription and stock management",
+  "icon": "💊",
+  "expandedText": "Manage prescription inventories, track medication stock levels, handle patient records.",
+  "badgeText": "NEW",
+  "demoLink": "https://demo.gosh.local", 
+  "order": 3
+}
+
+### Get Homepage Data
+GET {{baseUrl}}/api/homepage

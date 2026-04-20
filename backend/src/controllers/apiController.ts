@@ -22,6 +22,11 @@ export async function getSolution(req: Request, res: Response) {
   res.json({ success: true, data: solution });
 }
 
+export async function getHomepageData(req: Request, res: Response) {
+  const homepage = await service.getHomepageData();
+  res.json({ success: true, data: homepage });
+}
+
 export async function postDemoRequest(req: Request, res: Response) {
   const booking = await service.requestDemo(req.body);
   res.status(201).json({ success: true, data: booking });
@@ -40,6 +45,28 @@ export async function postPayment(req: Request, res: Response) {
 export async function postHostingRequest(req: Request, res: Response) {
   const booking = await service.requestHosting(req.body);
   res.status(201).json({ success: true, data: booking });
+}
+
+export async function postHomepageCard(req: Request, res: Response) {
+  const card = await service.createHomepageCard(req.body);
+  res.status(201).json({ success: true, data: card });
+}
+
+export async function deleteHomepageCard(req: Request, res: Response) {
+  const card = await service.deleteHomepageCard(Number(req.params.id));
+  if (!card) return res.status(404).json({ success: false, message: 'Card not found' });
+  res.json({ success: true, data: card });
+}
+
+export async function postHomepageBackground(req: Request, res: Response) {
+  const background = await service.createHomepageBackground(req.body);
+  res.status(201).json({ success: true, data: background });
+}
+
+export async function deleteHomepageBackground(req: Request, res: Response) {
+  const background = await service.deleteHomepageBackground(Number(req.params.id));
+  if (!background) return res.status(404).json({ success: false, message: 'Background not found' });
+  res.json({ success: true, data: background });
 }
 
 export async function adminLogin(req: Request, res: Response) {

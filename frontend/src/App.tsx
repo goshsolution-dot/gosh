@@ -1,20 +1,95 @@
-import { Route, Routes, Link } from 'react-router-dom';
+import { useState } from 'react';
+import { Route, Routes, Link, Navigate, useNavigate } from 'react-router-dom';
 import HomePage from './pages/HomePage';
-import AdminPage from './pages/AdminPage';
+import AdminLoginPage from './pages/AdminLoginPage';
+import AdminDashboardPage from './pages/AdminDashboardPage';
+import AdminRecordsPage from './pages/AdminRecordsPage';
+import AboutPage from './pages/AboutPage';
+import ContactPage from './pages/ContactPage';
+import SoftwareDetailPage from './pages/SoftwareDetailPage';
 
 function App() {
+  const isLoggedIn = localStorage.getItem('adminToken') !== null;
+  const navigate = useNavigate();
+  const [serviceDropdownOpen, setServiceDropdownOpen] = useState(false);
+
+  const handleNavClick = () => {
+    setServiceDropdownOpen(false);
+  };
+
   return (
     <div>
       <header className="app-header">
-        <Link to="/">GOSH Solutions</Link>
-        <Link to="/admin">Admin</Link>
+        <div className="header-logo">
+          <Link to="/" onClick={handleNavClick} className="header-logo-link">
+            <img src="http://localhost:5001/uploads/log.jpg" alt="GOSH Solutions logo" />
+            <div>
+              <span className="site-name">GOSH SOLUTIONS</span>
+              <small className="site-tagline">Malawi business systems</small>
+            </div>
+          </Link>
+        </div>
+
+        <nav className="header-nav">
+          <Link to="/" onClick={handleNavClick}>Home</Link>
+          <a href="/#systems" onClick={handleNavClick}>Systems</a>
+          <Link to="/about" onClick={handleNavClick}>About</Link>
+          <Link to="/contact" onClick={handleNavClick}>Contact</Link>
+          <a
+            className="whatsapp-header-btn"
+            href="https://wa.me/265xxxxxxxxx"
+            target="_blank"
+            rel="noreferrer"
+          >
+            WhatsApp
+          </a>
+          <Link to="/admin" onClick={handleNavClick} className="admin-nav-link">Admin</Link>
+          <button
+            className="nav-menu-toggle"
+            onClick={() => setServiceDropdownOpen(!serviceDropdownOpen)}
+            type="button"
+            aria-label="Open mobile menu"
+          >
+            ☰
+          </button>
+        </nav>
+
+        {serviceDropdownOpen && (
+          <div className="mobile-nav-menu">
+            <Link to="/" onClick={() => { handleNavClick(); setServiceDropdownOpen(false); }}>Home</Link>
+            <a href="/#systems" onClick={() => { handleNavClick(); setServiceDropdownOpen(false); }}>Systems</a>
+            <Link to="/about" onClick={() => { handleNavClick(); setServiceDropdownOpen(false); }}>About</Link>
+            <Link to="/contact" onClick={() => { handleNavClick(); setServiceDropdownOpen(false); }}>Contact</Link>
+            <a
+              href="https://wa.me/265xxxxxxxxx"
+              target="_blank"
+              rel="noreferrer"
+              onClick={() => setServiceDropdownOpen(false)}
+            >
+              WhatsApp
+            </a>
+            <Link to="/admin" onClick={() => { handleNavClick(); setServiceDropdownOpen(false); }}>Admin</Link>
+          </div>
+        )}
       </header>
+
       <main>
         <Routes>
           <Route path="/" element={<HomePage />} />
-          <Route path="/admin" element={<AdminPage />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/contact" element={<ContactPage />} />
+          <Route path="/software/:id" element={<SoftwareDetailPage />} />
+          <Route path="/admin" element={isLoggedIn ? <Navigate to="/admin/dashboard" /> : <AdminLoginPage />} />
+          <Route path="/admin/dashboard" element={isLoggedIn ? <AdminDashboardPage /> : <Navigate to="/admin" />} />
+          <Route path="/admin/records" element={isLoggedIn ? <AdminRecordsPage /> : <Navigate to="/admin" />} />
         </Routes>
       </main>
+
+      <footer className="app-footer">
+        <div className="footer-content">
+          <p>&copy; 2026 GOSH Solutions. All rights reserved. | <Link to="/contact">Contact Us</Link> | <Link to="/about">About Us</Link></p>
+        </div>
+      </footer>
     </div>
   );
 }
