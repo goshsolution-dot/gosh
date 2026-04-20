@@ -10,6 +10,7 @@ type HomepageCard = {
   images: string[];
   expandedText?: string;
   order: number;
+  industry?: string;
 };
 
 type HomepageBackground = {
@@ -40,8 +41,11 @@ function HomePage() {
     phone: '',
     business: '',
     message: '',
+    solutionId: null as number | null,
   });
   const [error, setError] = useState('');
+  const [selectedIndustry, setSelectedIndustry] = useState<string>('all');
+  const [industries, setIndustries] = useState<string[]>([]);
 
   useEffect(() => {
     async function loadHomepage() {
@@ -53,6 +57,10 @@ function HomePage() {
         }
         const data = await response.json();
         setHomepageData(data.data);
+        
+        // Extract unique industries from cards
+        const uniqueIndustries = [...new Set(data.data.cards.map((card: HomepageCard) => card.industry || 'General'))];
+        setIndustries(uniqueIndustries);
       } catch (err) {
         setError('Unable to load homepage content.');
       } finally {
@@ -76,8 +84,11 @@ function HomePage() {
 
   const expandedCard = homepageData.cards.find((card) => card.id === expandedCardId);
 
-  const handleOpenDemoForm = (source: 'hero' | 'card' = 'hero') => {
+  const handleOpenDemoForm = (source: 'hero' | 'card' = 'hero', cardId?: number) => {
     setDemoSource(source);
+    if (cardId) {
+      setDemoForm(prev => ({ ...prev, solutionId: cardId }));
+    }
     setIsDemoFormOpen(true);
     setDemoSubmitted(false);
   };
@@ -90,12 +101,75 @@ function HomePage() {
     setDemoSource(null);
   };
 
-  const handleDemoFormSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleDemoFormSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    
+    try {
+      // Submit to backend
+      const demoData = {
+        solutionId: demoForm.solutionId || 1, // Default to first solution if not specified
+        requestedDate: new Date().toISOString().split('T')[0], // Today's date
+        customer: {
+          name: demoForm.name,
+          email: demoForm.email,
+          phone: demoForm.phone,
+        },
+        message: demoForm.message,
+      };
+
+      const response = await fetch('/api/demo-requests', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(demoData),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to submit demo request');
+      }
+
+      // Create WhatsApp message
+      const cardInfo = demoSource === 'card' && expandedCard ? `\nCard: ${expandedCard.title}` : '';
+      const message = `Hello GOSH Solutions, I would like to book a free demo.${cardInfo}\nName: ${demoForm.name}\nEmail: ${demoForm.email}\nPhone: ${demoForm.phone}\nBusiness: ${demoForm.business}\nDetails: ${demoForm.message}`;
+      setWhatsappLink(`https://wa.me/265xxxxxxxxx?text=${encodeURIComponent(message)}`);
+      setDemoSubmitted(true);
+    } catch (error) {
+      console.error('Error submitting demo request:', error);
+      alert('Failed to submit demo request. Please try again.');
+    }
+  };
+
+  const handleWhatsAppSubmit = async () => {
+    // Submit to backend first
+    try {
+      const demoData = {
+        solutionId: demoForm.solutionId || 1,
+        requestedDate: new Date().toISOString().split('T')[0],
+        customer: {
+          name: demoForm.name,
+          email: demoForm.email,
+          phone: demoForm.phone,
+        },
+        message: demoForm.message,
+      };
+
+      await fetch('/api/demo-requests', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(demoData),
+      });
+    } catch (error) {
+      console.error('Error submitting demo request:', error);
+    }
+
+    // Open WhatsApp
     const cardInfo = demoSource === 'card' && expandedCard ? `\nCard: ${expandedCard.title}` : '';
     const message = `Hello GOSH Solutions, I would like to book a free demo.${cardInfo}\nName: ${demoForm.name}\nEmail: ${demoForm.email}\nPhone: ${demoForm.phone}\nBusiness: ${demoForm.business}\nDetails: ${demoForm.message}`;
-    setWhatsappLink(`https://wa.me/265xxxxxxxxx?text=${encodeURIComponent(message)}`);
-    setDemoSubmitted(true);
+    const whatsappUrl = `https://wa.me/265xxxxxxxxx?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
   };
 
   const handleNextImage = () => {
@@ -112,6 +186,11 @@ function HomePage() {
 
   return (
     <div className="homepage-page">
+      {/* CENTERED BRAND TITLE */}
+      <header className="centered-brand-header">
+        <h1 className="centered-brand-title">GOSH SOLUTIONS</h1>
+      </header>
+
       {/* HERO SECTION */}
       <section className="hero-section" id="home">
         <div className="hero-backgrounds">
@@ -218,7 +297,10 @@ function HomePage() {
               </label>
               <div className="demo-form-actions">
                 <button type="submit" className="btn btn-primary btn-lg">
-                  Continue to WhatsApp
+                  📝 Submit to Database
+                </button>
+                <button type="button" className="btn btn-secondary btn-lg" onClick={handleWhatsAppSubmit}>
+                  💬 WhatsApp & Submit
                 </button>
               </div>
             </form>
@@ -242,6 +324,25 @@ function HomePage() {
             <p>Click to see live demos of each system</p>
           </div>
 
+          {/* INDUSTRY FILTERS */}
+          <div className="industry-filters">
+            <button
+              className={`filter-btn ${selectedIndustry === 'all' ? 'active' : ''}`}
+              onClick={() => setSelectedIndustry('all')}
+            >
+              All Industries
+            </button>
+            {industries.map((industry) => (
+              <button
+                key={industry}
+                className={`filter-btn ${selectedIndustry === industry ? 'active' : ''}`}
+                onClick={() => setSelectedIndustry(industry)}
+              >
+                {industry}
+              </button>
+            ))}
+          </div>
+
           {loading ? (
             <div className="empty-state loading-state">
               <p>⏳ Loading your systems...</p>
@@ -255,37 +356,110 @@ function HomePage() {
               <p>📋 No cards configured yet. Add systems from the admin dashboard.</p>
             </div>
           ) : (
-            <div className="systems-grid">
-              {homepageData.cards.map((card, index) => {
-                const isRotating = index === carouselIndex;
-                return (
-                  <article
-                    key={card.id}
-                    className={`system-card ${isRotating ? 'rotating' : ''}`}
-                    style={{ animationDelay: `${index * 0.1}s` }}
-                    onClick={() => {
-                      setExpandedCardId(card.id);
-                      setCurrentImageIndex(0);
-                    }}
-                  >
-                    <div className="card-icon-wrapper">
-                      <span className="card-icon">{card.icon}</span>
-                    </div>
-                    <h3 className="card-title">{card.title}</h3>
-                    <p className="card-description">{card.subtitle}</p>
-                    {card.badgeText && <span className="card-mpesa-badge">{card.badgeText}</span>}
-                    <div className="card-actions">
-                      {card.demoLink ? (
-                        <a href={card.demoLink} className="btn-demo" target="_blank" rel="noreferrer">
-                          Live Demo →
-                        </a>
-                      ) : (
-                        <span className="btn-demo disabled">Coming Soon</span>
-                      )}
-                    </div>
-                  </article>
-                );
-              })}
+            <div className="systems-layout">
+              {/* CARDS GRID - LEFT SIDE */}
+              <div className="systems-grid-container">
+                <div className="systems-grid">
+                  {homepageData.cards
+                    .filter(card => selectedIndustry === 'all' || (card.industry || 'General') === selectedIndustry)
+                    .map((card, index) => {
+                    const isRotating = index === carouselIndex;
+                    return (
+                      <article
+                        key={card.id}
+                        className={`system-card ${isRotating ? 'rotating' : ''}`}
+                        style={{ animationDelay: `${index * 0.1}s` }}
+                        onClick={() => {
+                          setExpandedCardId(card.id);
+                          setCurrentImageIndex(0);
+                        }}
+                      >
+                        <div className="card-icon-wrapper">
+                          <span className="card-icon">{card.icon}</span>
+                        </div>
+                        <h3 className="card-title">{card.title}</h3>
+                        <p className="card-description">{card.subtitle}</p>
+                        {card.badgeText && <span className="card-mpesa-badge">{card.badgeText}</span>}
+                        <div className="card-actions">
+                          {card.demoLink ? (
+                            <a href={card.demoLink} className="btn-demo" target="_blank" rel="noreferrer">
+                              Live Demo →
+                            </a>
+                          ) : (
+                            <span className="btn-demo disabled">Coming Soon</span>
+                          )}
+                        </div>
+                      </article>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* ALTERNATING CARDS PREVIEW - RIGHT SIDE */}
+              <div className="dashboard-preview-container">
+                <div className="dashboard-preview">
+                  <div className="preview-header">
+                    <h3>✨ Featured Systems</h3>
+                    <p>Rotating showcase of our solutions</p>
+                  </div>
+                  <div className="alternating-cards-container">
+                    {homepageData.cards
+                      .filter(card => selectedIndustry === 'all' || (card.industry || 'General') === selectedIndustry)
+                      .map((card, index) => {
+                        const isActive = index === carouselIndex % homepageData.cards.length;
+                        return (
+                          <div
+                            key={`preview-${card.id}`}
+                            className={`alternating-card ${isActive ? 'active' : ''}`}
+                            style={{
+                              transform: `translateX(${(index - carouselIndex) * 100}%)`,
+                              transition: 'transform 0.5s ease-in-out'
+                            }}
+                          >
+                            <div className="preview-card-content">
+                              <div className="preview-card-icon">
+                                <span>{card.icon}</span>
+                              </div>
+                              <h4 className="preview-card-title">{card.title}</h4>
+                              <p className="preview-card-description">{card.subtitle}</p>
+                              {card.badgeText && (
+                                <span className="preview-card-badge">{card.badgeText}</span>
+                              )}
+                              <div className="preview-card-features">
+                                <div className="feature-item">✓ Real-time updates</div>
+                                <div className="feature-item">✓ Mobile responsive</div>
+                                <div className="feature-item">✓ Local support</div>
+                              </div>
+                              <div className="preview-card-actions">
+                                <button
+                                  className="btn-preview-demo"
+                                  onClick={() => {
+                                    setExpandedCardId(card.id);
+                                    setCurrentImageIndex(0);
+                                  }}
+                                >
+                                  View Details →
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                  </div>
+                  <div className="preview-indicators">
+                    {homepageData.cards
+                      .filter(card => selectedIndustry === 'all' || (card.industry || 'General') === selectedIndustry)
+                      .map((card, index) => (
+                        <button
+                          key={`indicator-${card.id}`}
+                          className={`indicator ${index === carouselIndex % homepageData.cards.length ? 'active' : ''}`}
+                          onClick={() => setCarouselIndex(index)}
+                          aria-label={`View ${card.title}`}
+                        />
+                      ))}
+                  </div>
+                </div>
+              </div>
             </div>
           )}
 
@@ -294,30 +468,6 @@ function HomePage() {
               <div className="expanded-card-content" onClick={(e) => e.stopPropagation()}>
                 <button className="close-modal-btn" onClick={() => setExpandedCardId(null)}>✕</button>
                 
-                {/* Image Gallery */}
-                {expandedCard.images.length > 0 && (
-                  <div className="expanded-image-gallery">
-                    <div className="gallery-main">
-                      <img src={expandedCard.images[currentImageIndex]} alt={`${expandedCard.title} ${currentImageIndex + 1}`} />
-                    </div>
-                    {expandedCard.images.length > 1 && (
-                      <div className="gallery-controls">
-                        <button className="gallery-arrow" onClick={handlePrevImage}>❮</button>
-                        <div className="gallery-indicators">
-                          {expandedCard.images.map((_, idx) => (
-                            <div
-                              key={idx}
-                              className={`indicator ${idx === currentImageIndex ? 'active' : ''}`}
-                              onClick={() => setCurrentImageIndex(idx)}
-                            />
-                          ))}
-                        </div>
-                        <button className="gallery-arrow" onClick={handleNextImage}>❯</button>
-                      </div>
-                    )}
-                  </div>
-                )}
-
                 {/* Content Sections */}
                 <div className="expanded-card-body">
                   <h2 className="expanded-card-title">{expandedCard.title}</h2>
@@ -370,7 +520,7 @@ function HomePage() {
                     <button
                       className="btn btn-primary btn-lg"
                       onClick={() => {
-                        handleOpenDemoForm('card');
+                        handleOpenDemoForm('card', expandedCard.id);
                         setExpandedCardId(null);
                       }}
                     >
@@ -379,7 +529,7 @@ function HomePage() {
                     <button
                       className="btn btn-secondary btn-lg"
                       onClick={() => {
-                        handleOpenDemoForm('card');
+                        handleOpenDemoForm('card', expandedCard.id);
                         setExpandedCardId(null);
                       }}
                     >
@@ -391,6 +541,30 @@ function HomePage() {
                       </a>
                     )}
                   </div>
+
+                  {/* IMAGE GALLERY AT BOTTOM */}
+                  {expandedCard.images.length > 0 && (
+                    <div className="expanded-image-gallery">
+                      <div className="gallery-main">
+                        <img src={expandedCard.images[currentImageIndex]} alt={`${expandedCard.title} ${currentImageIndex + 1}`} />
+                      </div>
+                      {expandedCard.images.length > 1 && (
+                        <div className="gallery-controls">
+                          <button className="gallery-arrow" onClick={handlePrevImage}>❮</button>
+                          <div className="gallery-indicators">
+                            {expandedCard.images.map((_, idx) => (
+                              <div
+                                key={idx}
+                                className={`indicator ${idx === currentImageIndex ? 'active' : ''}`}
+                                onClick={() => setCurrentImageIndex(idx)}
+                              />
+                            ))}
+                          </div>
+                          <button className="gallery-arrow" onClick={handleNextImage}>❯</button>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

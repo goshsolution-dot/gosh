@@ -59,6 +59,7 @@ interface HomepageCardAttributes {
   images: string;
   expandedText?: string;
   order: number;
+  industry?: string;
 }
 
 interface HomepageBackgroundAttributes {
@@ -135,6 +136,7 @@ const HomepageCard = sequelize.define<HomepageCardModel>('HomepageCard', {
   images: { type: DataTypes.TEXT, allowNull: false, defaultValue: '[]' },
   expandedText: { type: DataTypes.TEXT, allowNull: true },
   order: { type: DataTypes.INTEGER.UNSIGNED, allowNull: false, defaultValue: 0 },
+  industry: { type: DataTypes.STRING, allowNull: true },
 });
 
 const HomepageBackground = sequelize.define<HomepageBackgroundModel>('HomepageBackground', {

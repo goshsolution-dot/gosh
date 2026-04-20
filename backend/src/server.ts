@@ -64,7 +64,7 @@ async function populateSeedData() {
         expandedText: 'Manage reservations, guest check-ins, room status, billing, and staff schedules in one integrated platform. Real-time dashboard with occupancy rates and revenue tracking.',
         badgeText: 'FEATURED',
         demoLink: 'https://demo.gosh.local',
-        images: [],
+        images: '[]',
         order: 1,
       },
       {
@@ -74,7 +74,7 @@ async function populateSeedData() {
         expandedText: 'Streamline checkout processes, manage inventory in real-time, track sales analytics, and generate detailed reports. Perfect for shops, boutiques, and supermarkets.',
         badgeText: 'POPULAR',
         demoLink: 'https://demo.gosh.local',
-        images: [],
+        images: '[]',
         order: 2,
       },
       {
@@ -84,7 +84,7 @@ async function populateSeedData() {
         expandedText: 'Manage prescription inventories, track medication stock levels, handle patient records and billing. Compliant with health regulations.',
         badgeText: 'NEW',
         demoLink: 'https://demo.gosh.local',
-        images: [],
+        images: '[]',
         order: 3,
       },
     ]);
