@@ -47,6 +47,16 @@ export async function postHostingRequest(req: Request, res: Response) {
   res.status(201).json({ success: true, data: booking });
 }
 
+export async function postQuotationRequest(req: Request, res: Response) {
+  const quotation = await service.requestQuotation(req.body);
+  res.status(201).json({ success: true, data: quotation });
+}
+
+export async function getQuotationRequests(req: Request, res: Response) {
+  const quotations = await service.getQuotationRequests();
+  res.json({ success: true, data: quotations });
+}
+
 export async function postHomepageCard(req: Request, res: Response) {
   const card = await service.createHomepageCard(req.body);
   res.status(201).json({ success: true, data: card });

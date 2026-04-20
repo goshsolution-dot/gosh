@@ -35,17 +35,30 @@ interface Payment {
   service: string;
 }
 
+interface QuotationRequest {
+  id: number;
+  cardId: number;
+  customerName: string;
+  customerEmail: string;
+  customerPhone: string;
+  businessName: string;
+  requirements: string;
+  requestedDate: string;
+  status: 'pending' | 'reviewed' | 'quoted' | 'rejected';
+}
+
 interface RecordsData {
   solutions: Solution[];
   bookings: Booking[];
   payments: Payment[];
   customers: Customer[];
+  quotations?: QuotationRequest[];
 }
 
 function AdminRecordsPage() {
   const [records, setRecords] = useState<RecordsData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'bookings' | 'payments' | 'customers' | 'solutions'>('bookings');
+  const [activeTab, setActiveTab] = useState<'bookings' | 'payments' | 'customers' | 'solutions' | 'quotations'>('bookings');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -55,22 +68,32 @@ function AdminRecordsPage() {
       return;
     }
 
-    fetch('/api/admin/records', {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then((response) => {
-        if (response.status === 401) {
+    Promise.all([
+      fetch('/api/admin/records', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }),
+      fetch('/api/admin/quotation-requests', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }),
+    ])
+      .then(async ([recordsResponse, quotationsResponse]) => {
+        if (recordsResponse.status === 401 || quotationsResponse.status === 401) {
           localStorage.removeItem('adminToken');
           navigate('/admin');
           return;
         }
-        return response.json();
-      })
-      .then((data) => {
-        if (data.success) {
-          setRecords(data.data);
+        const recordsData = await recordsResponse.json();
+        const quotationsData = await quotationsResponse.json();
+
+        if (recordsData.success) {
+          setRecords({
+            ...recordsData.data,
+            quotations: quotationsData || [],
+          });
         }
       })
       .catch(() => {
@@ -130,6 +153,12 @@ function AdminRecordsPage() {
           onClick={() => setActiveTab('solutions')}
         >
           Solutions ({records.solutions.length})
+        </button>
+        <button
+          className={activeTab === 'quotations' ? 'active' : ''}
+          onClick={() => setActiveTab('quotations')}
+        >
+          Quotations ({records.quotations?.length || 0})
         </button>
       </div>
 
@@ -254,6 +283,64 @@ function AdminRecordsPage() {
                       <td>{solution.description}</td>
                       <td>{solution.industry.name}</td>
                       <td>{solution.demoAvailable ? 'Yes' : 'No'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'quotations' && (
+          <div className="records-table">
+            <h2>Quotation Requests</h2>
+            {!records.quotations || records.quotations.length === 0 ? (
+              <p>No quotation requests found.</p>
+            ) : (
+              <table>
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Customer Name</th>
+                    <th>Email</th>
+                    <th>Business</th>
+                    <th>Phone</th>
+                    <th>Requirements</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {records.quotations.map((quotation) => (
+                    <tr key={quotation.id}>
+                      <td>{quotation.id}</td>
+                      <td>{quotation.customerName}</td>
+                      <td>{quotation.customerEmail}</td>
+                      <td>{quotation.businessName}</td>
+                      <td>{quotation.customerPhone}</td>
+                      <td>{quotation.requirements.substring(0, 50)}...</td>
+                      <td>
+                        <span
+                          style={{
+                            padding: '0.25rem 0.75rem',
+                            borderRadius: '5px',
+                            backgroundColor:
+                              quotation.status === 'pending'
+                                ? '#FFA500'
+                                : quotation.status === 'reviewed'
+                                ? '#4169E1'
+                                : quotation.status === 'quoted'
+                                ? '#25D366'
+                                : '#FF6B6B',
+                            color: 'white',
+                            fontSize: '0.85rem',
+                            fontWeight: 'bold',
+                          }}
+                        >
+                          {quotation.status}
+                        </span>
+                      </td>
+                      <td>{quotation.requestedDate}</td>
                     </tr>
                   ))}
                 </tbody>

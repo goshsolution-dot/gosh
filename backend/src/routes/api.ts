@@ -10,6 +10,8 @@ router.get('/solutions', asyncHandler(controller.getSolutions));
 router.get('/solutions/:id', asyncHandler(controller.getSolution));
 router.post('/demo-requests', asyncHandler(controller.postDemoRequest));
 router.post('/discussions', asyncHandler(controller.postDiscussionRequest));
+router.post('/quotation-requests', asyncHandler(controller.postQuotationRequest));
+router.get('/admin/quotation-requests', authenticateAdmin, asyncHandler(controller.getQuotationRequests));
 router.post('/payments', asyncHandler(controller.postPayment));
 router.post('/hosting-requests', asyncHandler(controller.postHostingRequest));
 router.get('/homepage', asyncHandler(controller.getHomepageData));

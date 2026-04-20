@@ -69,6 +69,18 @@ interface HomepageBackgroundAttributes {
   order: number;
 }
 
+interface QuotationRequestAttributes {
+  id: number;
+  cardId: number;
+  customerName: string;
+  customerEmail: string;
+  customerPhone: string;
+  businessName: string;
+  requirements: string;
+  requestedDate: string;
+  status?: 'pending' | 'reviewed' | 'quoted' | 'rejected';
+}
+
 type IndustryModel = Model<IndustryAttributes, Optional<IndustryAttributes, 'id'>> & IndustryAttributes;
 type SolutionModel = Model<SolutionAttributes, Optional<SolutionAttributes, 'id'>> & SolutionAttributes;
 type CustomerModel = Model<CustomerAttributes, Optional<CustomerAttributes, 'id'>> & CustomerAttributes;
@@ -77,6 +89,7 @@ type PaymentModel = Model<PaymentAttributes, Optional<PaymentAttributes, 'id'>> 
 type EquipmentModel = Model<EquipmentAttributes, Optional<EquipmentAttributes, 'id'>> & EquipmentAttributes;
 type HomepageCardModel = Model<HomepageCardAttributes, Optional<HomepageCardAttributes, 'id'>> & HomepageCardAttributes;
 type HomepageBackgroundModel = Model<HomepageBackgroundAttributes, Optional<HomepageBackgroundAttributes, 'id'>> & HomepageBackgroundAttributes;
+type QuotationRequestModel = Model<QuotationRequestAttributes, Optional<QuotationRequestAttributes, 'id'>> & QuotationRequestAttributes;
 
 const Industry = sequelize.define<IndustryModel>('Industry', {
   id: { type: DataTypes.INTEGER.UNSIGNED, autoIncrement: true, primaryKey: true },
@@ -146,6 +159,18 @@ const HomepageBackground = sequelize.define<HomepageBackgroundModel>('HomepageBa
   order: { type: DataTypes.INTEGER.UNSIGNED, allowNull: false, defaultValue: 0 },
 });
 
+const QuotationRequest = sequelize.define<QuotationRequestModel>('QuotationRequest', {
+  id: { type: DataTypes.INTEGER.UNSIGNED, autoIncrement: true, primaryKey: true },
+  cardId: { type: DataTypes.INTEGER.UNSIGNED, allowNull: false },
+  customerName: { type: DataTypes.STRING, allowNull: false },
+  customerEmail: { type: DataTypes.STRING, allowNull: false },
+  customerPhone: { type: DataTypes.STRING, allowNull: false },
+  businessName: { type: DataTypes.STRING, allowNull: false },
+  requirements: { type: DataTypes.TEXT, allowNull: false },
+  requestedDate: { type: DataTypes.STRING, allowNull: false },
+  status: { type: DataTypes.ENUM('pending', 'reviewed', 'quoted', 'rejected'), allowNull: false, defaultValue: 'pending' },
+});
+
 Industry.hasMany(Solution, { foreignKey: 'industryId', as: 'solutions' });
 Solution.belongsTo(Industry, { foreignKey: 'industryId', as: 'industry' });
 Customer.hasMany(Booking, { foreignKey: 'customerId', as: 'bookings' });
@@ -165,4 +190,5 @@ export {
   Equipment,
   HomepageCard,
   HomepageBackground,
+  QuotationRequest,
 };

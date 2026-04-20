@@ -1,4 +1,4 @@
-import { Customer, Industry, Payment, Booking, Solution, HomepageCard, HomepageBackground } from '../models/index';
+import { Customer, Industry, Payment, Booking, Solution, HomepageCard, HomepageBackground, QuotationRequest } from '../models/index';
 
 interface RequestCustomerData {
   name: string;
@@ -88,6 +88,29 @@ export async function requestHosting(data: {
     provider: data.provider,
     serviceDetails: data.serviceDetails,
   });
+}
+
+export async function requestQuotation(data: {
+  cardId: number;
+  customer: RequestCustomerData;
+  business: string;
+  requirements: string;
+  requestedDate: string;
+}) {
+  return QuotationRequest.create({
+    cardId: data.cardId,
+    customerName: data.customer.name,
+    customerEmail: data.customer.email,
+    customerPhone: data.customer.phone || '',
+    businessName: data.business,
+    requirements: data.requirements,
+    requestedDate: data.requestedDate,
+    status: 'pending',
+  });
+}
+
+export async function getQuotationRequests() {
+  return QuotationRequest.findAll({ order: [['id', 'DESC']] });
 }
 
 export async function getHomepageData() {

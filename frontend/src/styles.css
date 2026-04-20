@@ -4197,6 +4197,40 @@ button:disabled {
   box-shadow: 0 8px 25px rgba(52, 152, 219, 0.4);
 }
 
+/* QUOTATION FORM SELECT STYLING */
+.demo-form select {
+  width: 100%;
+  border: 2px solid #e0e0e0;
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+  font-size: 0.95rem;
+  color: #0f172a;
+  background: #f8fafc;
+  font-family: inherit;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  margin-bottom: 1rem;
+}
+
+.demo-form select:hover {
+  border-color: #cbd5e1;
+  background: #ffffff;
+}
+
+.demo-form select:focus {
+  outline: none;
+  border-color: #25D366;
+  box-shadow: 0 0 0 3px rgba(37, 211, 102, 0.1);
+  background: white;
+}
+
+.demo-form select option {
+  background: white;
+  color: #0f172a;
+  padding: 0.75rem;
+  font-size: 0.95rem;
+}
+
 @media (max-width: 1024px) {
   .compliance-grid,
   .services-grid {

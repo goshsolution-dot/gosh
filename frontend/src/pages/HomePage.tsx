@@ -35,7 +35,7 @@ function HomePage() {
   const [demoSubmitted, setDemoSubmitted] = useState(false);
   const [whatsappLink, setWhatsappLink] = useState('');
   const [demoSource, setDemoSource] = useState<'hero' | 'card' | null>(null);
-  const [formType, setFormType] = useState<'demo' | 'project'>('demo');
+  const [formType, setFormType] = useState<'demo' | 'project' | 'quotation'>('demo');
   const [demoForm, setDemoForm] = useState({
     name: '',
     email: '',
@@ -43,6 +43,14 @@ function HomePage() {
     business: '',
     message: '',
     solutionId: null as number | null,
+  });
+  const [quotationForm, setQuotationForm] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    business: '',
+    selectedCard: null as number | null,
+    requirements: '',
   });
   const [error, setError] = useState('');
   const [selectedIndustry, setSelectedIndustry] = useState<string>('all');
@@ -102,10 +110,26 @@ function HomePage() {
     setDemoSubmitted(false);
   };
 
+  const handleOpenQuotationForm = (cardId?: number) => {
+    setFormType('quotation');
+    setDemoSource('hero');
+    setIsDemoFormOpen(true);
+    setDemoSubmitted(false);
+    setQuotationForm({
+      name: '',
+      email: '',
+      phone: '',
+      business: '',
+      selectedCard: cardId || null,
+      requirements: '',
+    });
+  };
+
   const handleCloseDemoForm = () => {
     setIsDemoFormOpen(false);
     setDemoSubmitted(false);
-    setDemoForm({ name: '', email: '', phone: '', business: '', message: '' });
+    setDemoForm({ name: '', email: '', phone: '', business: '', message: '', solutionId: null });
+    setQuotationForm({ name: '', email: '', phone: '', business: '', selectedCard: null, requirements: '' });
     setWhatsappLink('');
     setDemoSource(null);
   };
@@ -181,6 +205,42 @@ function HomePage() {
     window.open(whatsappUrl, '_blank');
   };
 
+  const handleQuotationSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    try {
+      const quotationData = {
+        cardId: quotationForm.selectedCard,
+        customer: {
+          name: quotationForm.name,
+          email: quotationForm.email,
+          phone: quotationForm.phone,
+        },
+        business: quotationForm.business,
+        requirements: quotationForm.requirements,
+        requestedDate: new Date().toISOString().split('T')[0],
+      };
+
+      const response = await fetch('/api/quotation-requests', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(quotationData),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to submit quotation request');
+      }
+
+      alert('✓ Quotation request submitted successfully! Our team will review and contact you shortly.');
+      handleCloseDemoForm();
+    } catch (error) {
+      console.error('Error submitting quotation request:', error);
+      alert('Failed to submit quotation request. Please try again.');
+    }
+  };
+
   const handleNextImage = () => {
     if (expandedCard && expandedCard.images.length > 0) {
       setCurrentImageIndex((prev) => (prev + 1) % expandedCard.images.length);
@@ -216,17 +276,17 @@ function HomePage() {
         </div>
         <div className="hero-container">
           <div className="hero-left">
-            <h1 className="hero-headline">We Build Systems That Run Your Business</h1>
+            <h1 className="hero-headline">We Build Websites/Systems That Run Your Online Businesses</h1>
             <p className="hero-subhead">
-              Hotel, Pharmacy, Bar, POS & Air BnB management software. <br />
+              Hotel Management, Online Qotation, Loan Management, /Hospital/Pharmacy, Property Management, Online Ticketing Systems, Bar/Pub Management, Air BnB management software. <br />
               Built in Malawi, for Malawi. + Custom development.
             </p>
             <div className="hero-buttons">
               <a href="#systems" className="btn btn-primary btn-lg">
                 View Our Systems
               </a>
-              <button type="button" className="btn btn-secondary btn-lg" onClick={() => handleOpenDemoForm('hero')}>
-                Book Free Demo
+              <button type="button" className="btn btn-secondary btn-lg" onClick={() => handleOpenQuotationForm()}>
+                Get a Quotation
               </button>
             </div>
             <div className="trust-bar-hero">
@@ -308,62 +368,141 @@ function HomePage() {
               ✕
             </button>
             <div className="demo-form-header">
-              <h2>{formType === 'project' ? 'Describe Your Project' : 'Book Your Free Demo'}</h2>
-              <p>Please complete this short form before continuing to WhatsApp.</p>
+              <h2>
+                {formType === 'project' 
+                  ? 'Describe Your Project' 
+                  : formType === 'quotation' 
+                  ? 'Request a Quotation' 
+                  : 'Book Your Free Demo'}
+              </h2>
+              <p>
+                {formType === 'quotation'
+                  ? 'Select the solution you need and tell us your requirements.'
+                  : 'Please complete this short form before continuing to WhatsApp.'}
+              </p>
             </div>
-            <form className="demo-form" onSubmit={handleDemoFormSubmit}>
-              <div className="demo-form-row">
-                <label>
-                  Name
-                  <input
-                    value={demoForm.name}
-                    onChange={(e) => setDemoForm((prev) => ({ ...prev, name: e.target.value }))}
-                    required
-                  />
-                </label>
-                <label>
-                  Email
-                  <input
-                    type="email"
-                    value={demoForm.email}
-                    onChange={(e) => setDemoForm((prev) => ({ ...prev, email: e.target.value }))}
-                    required
-                  />
-                </label>
-              </div>
-              <div className="demo-form-row">
-                <label>
-                  Phone
-                  <input
-                    value={demoForm.phone}
-                    onChange={(e) => setDemoForm((prev) => ({ ...prev, phone: e.target.value }))}
-                    required
-                  />
-                </label>
-                <label>
-                  Business
-                  <input
-                    value={demoForm.business}
-                    onChange={(e) => setDemoForm((prev) => ({ ...prev, business: e.target.value }))}
-                    required
-                  />
-                </label>
-              </div>
-              <label>
-                {formType === 'project' ? 'Tell us about your project' : 'What would you like included in the demo?'}
-                <textarea
-                  value={demoForm.message}
-                  onChange={(e) => setDemoForm((prev) => ({ ...prev, message: e.target.value }))}
-                  rows={4}
-                />
-              </label>
+            <form className="demo-form" onSubmit={formType === 'quotation' ? handleQuotationSubmit : handleDemoFormSubmit}>
+              {formType === 'quotation' ? (
+                <>
+                  <label>
+                    Select Solution
+                    <select
+                      value={quotationForm.selectedCard || ''}
+                      onChange={(e) => setQuotationForm((prev) => ({ ...prev, selectedCard: e.target.value ? Number(e.target.value) : null }))}
+                      required
+                    >
+                      <option value="">-- Choose a solution --</option>
+                      {homepageData.cards.map((card) => (
+                        <option key={card.id} value={card.id}>
+                          {card.title} - {card.subtitle}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <div className="demo-form-row">
+                    <label>
+                      Full Name
+                      <input
+                        value={quotationForm.name}
+                        onChange={(e) => setQuotationForm((prev) => ({ ...prev, name: e.target.value }))}
+                        required
+                      />
+                    </label>
+                    <label>
+                      Email
+                      <input
+                        type="email"
+                        value={quotationForm.email}
+                        onChange={(e) => setQuotationForm((prev) => ({ ...prev, email: e.target.value }))}
+                        required
+                      />
+                    </label>
+                  </div>
+                  <div className="demo-form-row">
+                    <label>
+                      Phone Number
+                      <input
+                        value={quotationForm.phone}
+                        onChange={(e) => setQuotationForm((prev) => ({ ...prev, phone: e.target.value }))}
+                        required
+                      />
+                    </label>
+                    <label>
+                      Business Name
+                      <input
+                        value={quotationForm.business}
+                        onChange={(e) => setQuotationForm((prev) => ({ ...prev, business: e.target.value }))}
+                        required
+                      />
+                    </label>
+                  </div>
+                  <label>
+                    What features/requirements do you need?
+                    <textarea
+                      value={quotationForm.requirements}
+                      onChange={(e) => setQuotationForm((prev) => ({ ...prev, requirements: e.target.value }))}
+                      rows={4}
+                    />
+                  </label>
+                </>
+              ) : (
+                <>
+                  <div className="demo-form-row">
+                    <label>
+                      Name
+                      <input
+                        value={demoForm.name}
+                        onChange={(e) => setDemoForm((prev) => ({ ...prev, name: e.target.value }))}
+                        required
+                      />
+                    </label>
+                    <label>
+                      Email
+                      <input
+                        type="email"
+                        value={demoForm.email}
+                        onChange={(e) => setDemoForm((prev) => ({ ...prev, email: e.target.value }))}
+                        required
+                      />
+                    </label>
+                  </div>
+                  <div className="demo-form-row">
+                    <label>
+                      Phone
+                      <input
+                        value={demoForm.phone}
+                        onChange={(e) => setDemoForm((prev) => ({ ...prev, phone: e.target.value }))}
+                        required
+                      />
+                    </label>
+                    <label>
+                      Business
+                      <input
+                        value={demoForm.business}
+                        onChange={(e) => setDemoForm((prev) => ({ ...prev, business: e.target.value }))}
+                        required
+                      />
+                    </label>
+                  </div>
+                  <label>
+                    {formType === 'project' ? 'Tell us about your project' : 'What would you like included in the demo?'}
+                    <textarea
+                      value={demoForm.message}
+                      onChange={(e) => setDemoForm((prev) => ({ ...prev, message: e.target.value }))}
+                      rows={4}
+                    />
+                  </label>
+                </>
+              )}
               <div className="demo-form-actions">
                 <button type="submit" className="btn btn-primary btn-lg">
                   📝 Submit
                 </button>
-                <button type="button" className="btn btn-secondary btn-lg btn-whatsapp" onClick={handleWhatsAppSubmit}>
-                  💬 WhatsApp
-                </button>
+                {formType !== 'quotation' && (
+                  <button type="button" className="btn btn-secondary btn-lg btn-whatsapp" onClick={formType === 'quotation' ? () => {} : handleWhatsAppSubmit}>
+                    💬 WhatsApp
+                  </button>
+                )}
               </div>
             </form>
             {demoSubmitted && (
@@ -525,7 +664,16 @@ function HomePage() {
                       📅 Book Demo
                     </button>
                     <button
-                      className="btn btn-secondary btn-lg"
+                      className="btn btn-primary btn-lg"
+                      onClick={() => {
+                        handleOpenQuotationForm(expandedCard.id);
+                        setExpandedCardId(null);
+                      }}
+                    >
+                      💬 Get Quotation
+                    </button>
+                    <button
+                      className="btn btn-primary btn-lg"
                       onClick={() => {
                         handleOpenDemoForm('card', expandedCard.id);
                         setExpandedCardId(null);
@@ -534,7 +682,7 @@ function HomePage() {
                       ℹ️ More Information
                     </button>
                     {expandedCard.demoLink && (
-                      <a href={expandedCard.demoLink} target="_blank" rel="noreferrer" className="btn btn-outline btn-lg">
+                      <a href={expandedCard.demoLink} target="_blank" rel="noreferrer" className="btn btn-primary btn-lg">
                         🔗 Live Demo
                       </a>
                     )}
