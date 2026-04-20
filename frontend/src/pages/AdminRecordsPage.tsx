@@ -92,7 +92,7 @@ function AdminRecordsPage() {
         if (recordsData.success) {
           setRecords({
             ...recordsData.data,
-            quotations: quotationsData || [],
+            quotations: quotationsData?.data || [],
           });
         }
       })
@@ -318,7 +318,7 @@ function AdminRecordsPage() {
                       <td>{quotation.customerEmail}</td>
                       <td>{quotation.businessName}</td>
                       <td>{quotation.customerPhone}</td>
-                      <td>{quotation.requirements.substring(0, 50)}...</td>
+                      <td>{quotation.requirements ? quotation.requirements.substring(0, 50) + '...' : 'N/A'}</td>
                       <td>
                         <span
                           style={{

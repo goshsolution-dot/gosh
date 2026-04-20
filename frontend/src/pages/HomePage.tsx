@@ -278,7 +278,7 @@ function HomePage() {
           <div className="hero-left">
             <h1 className="hero-headline">We Build Websites/Systems That Run Your Online Businesses</h1>
             <p className="hero-subhead">
-              Hotel Management, Online Qotation, Loan Management, /Hospital/Pharmacy, Property Management, Online Ticketing Systems, Bar/Pub Management, Air BnB management software. <br />
+              Hotel Management, Take-Away/Restraunt Ordering System, Loan Management, /Hospital/Pharmacy, Property Management, Online Ticketing Systems, Bar/Pub Management, Air BnB management software. <br />
               Built in Malawi, for Malawi. + Custom development.
             </p>
             <div className="hero-buttons">
