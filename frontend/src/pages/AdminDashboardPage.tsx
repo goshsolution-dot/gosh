@@ -118,7 +118,10 @@ function AdminDashboardPage() {
     if (!files?.length) return;
 
     const images = await Promise.all(Array.from(files).map((file) => readFileAsDataURL(file)));
-    setCardForm((prev) => ({ ...prev, images: [...prev.images, ...images] }));
+    setCardForm((prev) => {
+      const newImages = [...prev.images, ...images];
+      return { ...prev, images: newImages.slice(0, 4) }; // Limit to 4 images
+    });
   };
 
   const handleCreateCard = async (event: React.FormEvent) => {

@@ -35,6 +35,7 @@ function HomePage() {
   const [demoSubmitted, setDemoSubmitted] = useState(false);
   const [whatsappLink, setWhatsappLink] = useState('');
   const [demoSource, setDemoSource] = useState<'hero' | 'card' | null>(null);
+  const [formType, setFormType] = useState<'demo' | 'project'>('demo');
   const [demoForm, setDemoForm] = useState({
     name: '',
     email: '',
@@ -85,10 +86,18 @@ function HomePage() {
   const expandedCard = homepageData.cards.find((card) => card.id === expandedCardId);
 
   const handleOpenDemoForm = (source: 'hero' | 'card' = 'hero', cardId?: number) => {
+    setFormType('demo');
     setDemoSource(source);
     if (cardId) {
       setDemoForm(prev => ({ ...prev, solutionId: cardId }));
     }
+    setIsDemoFormOpen(true);
+    setDemoSubmitted(false);
+  };
+
+  const handleOpenProjectForm = () => {
+    setFormType('project');
+    setDemoSource('hero');
     setIsDemoFormOpen(true);
     setDemoSubmitted(false);
   };
@@ -186,10 +195,6 @@ function HomePage() {
 
   return (
     <div className="homepage-page">
-      {/* CENTERED BRAND TITLE */}
-      <header className="centered-brand-header">
-        <h1 className="centered-brand-title">GOSH SOLUTIONS</h1>
-      </header>
 
       {/* HERO SECTION */}
       <section className="hero-section" id="home">
@@ -211,7 +216,6 @@ function HomePage() {
         </div>
         <div className="hero-container">
           <div className="hero-left">
-            <p className="hero-brand">GOSH SOLUTIONS</p>
             <h1 className="hero-headline">We Build Systems That Run Your Business</h1>
             <p className="hero-subhead">
               Hotel, Pharmacy, Bar, POS & Air BnB management software. <br />
@@ -229,13 +233,71 @@ function HomePage() {
               <span>✓ Trusted by 30+ businesses in Lilongwe & Blantyre</span>
             </div>
           </div>
-          <div className="hero-right">
-            <div className="mockup-container">
-              <div className="mockup-laptop">💻</div>
-              <div className="mockup-phone">📱</div>
-              <p>Hotel Dashboard & POS System</p>
-            </div>
-          </div>
+              {/* ALTERNATING CARDS PREVIEW - RIGHT SIDE */}
+              <div className="dashboard-preview-container">
+                <div className="dashboard-preview">
+                  <div className="preview-header">
+                    <h3>✨ Featured Systems</h3>
+                    <p>Rotating showcase of our solutions</p>
+                  </div>
+                  <div className="alternating-cards-container">
+                    {homepageData.cards
+                      .filter(card => selectedIndustry === 'all' || (card.industry || 'General') === selectedIndustry)
+                      .map((card, index) => {
+                        const isActive = index === carouselIndex % homepageData.cards.length;
+                        return (
+                          <div
+                            key={`preview-${card.id}`}
+                            className={`alternating-card ${isActive ? 'active' : ''}`}
+                            style={{
+                              transform: `translateX(${(index - carouselIndex) * 100}%)`,
+                              transition: 'transform 0.5s ease-in-out'
+                            }}
+                          >
+                            <div className="preview-card-content">
+                              <div className="preview-card-icon">
+                                <span>{card.icon}</span>
+                              </div>
+                              <h4 className="preview-card-title">{card.title}</h4>
+                              <p className="preview-card-description">{card.subtitle}</p>
+                              {card.badgeText && (
+                                <span className="preview-card-badge">{card.badgeText}</span>
+                              )}
+                              <div className="preview-card-features">
+                                <div className="feature-item">✓ Real-time updates</div>
+                                <div className="feature-item">✓ Mobile responsive</div>
+                                <div className="feature-item">✓ Local support</div>
+                              </div>
+                              <div className="preview-card-actions">
+                                <button
+                                  className="btn-preview-demo"
+                                  onClick={() => {
+                                    setExpandedCardId(card.id);
+                                    setCurrentImageIndex(0);
+                                  }}
+                                >
+                                  View Details →
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                  </div>
+                  <div className="preview-indicators">
+                    {homepageData.cards
+                      .filter(card => selectedIndustry === 'all' || (card.industry || 'General') === selectedIndustry)
+                      .map((card, index) => (
+                        <button
+                          key={`indicator-${card.id}`}
+                          className={`indicator ${index === carouselIndex % homepageData.cards.length ? 'active' : ''}`}
+                          onClick={() => setCarouselIndex(index)}
+                          aria-label={`View ${card.title}`}
+                        />
+                      ))}
+                  </div>
+                </div>
+              </div>
         </div>
       </section>
 
@@ -246,7 +308,7 @@ function HomePage() {
               ✕
             </button>
             <div className="demo-form-header">
-              <h2>Book Your Free Demo</h2>
+              <h2>{formType === 'project' ? 'Describe Your Project' : 'Book Your Free Demo'}</h2>
               <p>Please complete this short form before continuing to WhatsApp.</p>
             </div>
             <form className="demo-form" onSubmit={handleDemoFormSubmit}>
@@ -288,7 +350,7 @@ function HomePage() {
                 </label>
               </div>
               <label>
-                What would you like included in the demo?
+                {formType === 'project' ? 'Tell us about your project' : 'What would you like included in the demo?'}
                 <textarea
                   value={demoForm.message}
                   onChange={(e) => setDemoForm((prev) => ({ ...prev, message: e.target.value }))}
@@ -297,10 +359,10 @@ function HomePage() {
               </label>
               <div className="demo-form-actions">
                 <button type="submit" className="btn btn-primary btn-lg">
-                  📝 Submit to Database
+                  📝 Submit
                 </button>
-                <button type="button" className="btn btn-secondary btn-lg" onClick={handleWhatsAppSubmit}>
-                  💬 WhatsApp & Submit
+                <button type="button" className="btn btn-secondary btn-lg btn-whatsapp" onClick={handleWhatsAppSubmit}>
+                  💬 WhatsApp
                 </button>
               </div>
             </form>
@@ -395,71 +457,7 @@ function HomePage() {
                 </div>
               </div>
 
-              {/* ALTERNATING CARDS PREVIEW - RIGHT SIDE */}
-              <div className="dashboard-preview-container">
-                <div className="dashboard-preview">
-                  <div className="preview-header">
-                    <h3>✨ Featured Systems</h3>
-                    <p>Rotating showcase of our solutions</p>
-                  </div>
-                  <div className="alternating-cards-container">
-                    {homepageData.cards
-                      .filter(card => selectedIndustry === 'all' || (card.industry || 'General') === selectedIndustry)
-                      .map((card, index) => {
-                        const isActive = index === carouselIndex % homepageData.cards.length;
-                        return (
-                          <div
-                            key={`preview-${card.id}`}
-                            className={`alternating-card ${isActive ? 'active' : ''}`}
-                            style={{
-                              transform: `translateX(${(index - carouselIndex) * 100}%)`,
-                              transition: 'transform 0.5s ease-in-out'
-                            }}
-                          >
-                            <div className="preview-card-content">
-                              <div className="preview-card-icon">
-                                <span>{card.icon}</span>
-                              </div>
-                              <h4 className="preview-card-title">{card.title}</h4>
-                              <p className="preview-card-description">{card.subtitle}</p>
-                              {card.badgeText && (
-                                <span className="preview-card-badge">{card.badgeText}</span>
-                              )}
-                              <div className="preview-card-features">
-                                <div className="feature-item">✓ Real-time updates</div>
-                                <div className="feature-item">✓ Mobile responsive</div>
-                                <div className="feature-item">✓ Local support</div>
-                              </div>
-                              <div className="preview-card-actions">
-                                <button
-                                  className="btn-preview-demo"
-                                  onClick={() => {
-                                    setExpandedCardId(card.id);
-                                    setCurrentImageIndex(0);
-                                  }}
-                                >
-                                  View Details →
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                  </div>
-                  <div className="preview-indicators">
-                    {homepageData.cards
-                      .filter(card => selectedIndustry === 'all' || (card.industry || 'General') === selectedIndustry)
-                      .map((card, index) => (
-                        <button
-                          key={`indicator-${card.id}`}
-                          className={`indicator ${index === carouselIndex % homepageData.cards.length ? 'active' : ''}`}
-                          onClick={() => setCarouselIndex(index)}
-                          aria-label={`View ${card.title}`}
-                        />
-                      ))}
-                  </div>
-                </div>
-              </div>
+
             </div>
           )}
 
@@ -611,9 +609,9 @@ function HomePage() {
             <span className="tech-badge">PostgreSQL</span>
             <span className="tech-badge">React</span>
           </div>
-          <a href="https://wa.me/265xxxxxxxxx" className="btn btn-primary" target="_blank" rel="noreferrer">
+          <button type="button" className="btn btn-primary" onClick={handleOpenProjectForm}>
             Describe Your Project
-          </a>
+          </button>
         </div>
       </section>
 

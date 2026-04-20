@@ -874,6 +874,18 @@ main {
   transform: translateY(-2px);
 }
 
+.btn-whatsapp-only {
+  background: #25D366 !important;
+  color: white !important;
+  border-color: #25D366 !important;
+}
+
+.btn-whatsapp-only:hover {
+  background: #128C7E !important;
+  border-color: #128C7E !important;
+  box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3) !important;
+}
+
 .submit-status {
   margin-top: 1rem;
   padding: 1rem;
@@ -889,6 +901,53 @@ main {
   border-left-color: var(--danger);
   background: #fef2f2;
   color: #7f1d1d;
+}
+
+.carousel-modal {
+  max-width: 800px;
+}
+
+.close-btn {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: var(--dark);
+}
+
+.carousel {
+  text-align: center;
+}
+
+.carousel-image {
+  max-width: 100%;
+  max-height: 400px;
+  object-fit: contain;
+  border-radius: 10px;
+  margin: 1rem 0;
+}
+
+.carousel-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1rem;
+}
+
+.carousel-controls button {
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.carousel-controls button:hover {
+  background: var(--secondary);
 }
 
 @keyframes slideInUp {
@@ -1401,8 +1460,6 @@ button:disabled {
 }
 
 .header {
-  position: sticky;
-  top: 0;
   background: #0A3D62;
   color: white;
   z-index: 1000;
@@ -1461,12 +1518,19 @@ button:disabled {
   padding: 0.5rem 1rem;
   border-radius: 5px;
   text-decoration: none;
-  font-weight: 500;
-  transition: background 0.3s;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  border: 2px solid #25D366;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .whatsapp-btn:hover {
   background: #128C7E;
+  border-color: #128C7E;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3);
 }
 
 .hero-section {
@@ -1540,6 +1604,17 @@ button:disabled {
 .btn-secondary:hover {
   background: white;
   color: #0A3D62;
+}
+
+.btn-whatsapp {
+  background: #25D366;
+  color: white;
+  border-color: #25D366;
+}
+
+.btn-whatsapp:hover {
+  background: #128C7E;
+  border-color: #128C7E;
 }
 
 .trust-bar {
@@ -1618,7 +1693,14 @@ button:disabled {
 
 .system-icon {
   font-size: 3rem;
-  margin-bottom: 1rem;
+  margin-top: 1rem;
+}
+
+.system-icon img {
+  width: 3rem;
+  height: 3rem;
+  object-fit: cover;
+  border-radius: 10px;
 }
 
 .system-card h3 {
@@ -1747,7 +1829,7 @@ button:disabled {
   justify-content: center;
   font-weight: bold;
   font-size: 1.2rem;
-  margin: 0 auto 1rem;
+  margin: 1rem auto 0;
 }
 
 .client-result {
@@ -2037,6 +2119,20 @@ button:disabled {
   align-items: center;
 }
 
+@media (min-width: 1025px) {
+  .systems-grid,
+  .clients-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (max-width: 1024px) and (min-width: 769px) {
+  .systems-grid,
+  .clients-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 @media (max-width: 768px) {
   .header-content {
     flex-direction: column;
@@ -2111,7 +2207,7 @@ button:disabled {
 .homepage-page {
   width: 100%;
   overflow-x: hidden;
-  padding-top: 80px; /* Account for fixed header */
+  padding-top: 0px; /* Account for fixed header */
 }
 
 /* INDUSTRY FILTERS */
@@ -2384,7 +2480,7 @@ button:disabled {
 
 .systems-layout {
   display: grid;
-  grid-template-columns: 2fr 1fr;
+ 
   gap: 3rem;
   align-items: start;
 }
