@@ -3999,3 +3999,271 @@ button:disabled {
     font-size: 0.8rem;
   }
 }
+
+/* ABOUT PAGE STYLES */
+.about-hero {
+  background: linear-gradient(135deg, #0f172a 0%, #1e40af 50%, #7c3aed 100%);
+  color: white;
+  padding: 4rem 2rem;
+  text-align: center;
+  border-radius: 12px;
+  margin: 2rem 0;
+}
+
+.about-hero h1 {
+  font-size: 2.5rem;
+  margin: 0 0 1rem 0;
+  font-weight: 800;
+}
+
+.about-hero p {
+  font-size: 1.2rem;
+  margin: 0;
+  opacity: 0.95;
+}
+
+.about-content {
+  margin: 3rem 0;
+}
+
+.about-section {
+  margin: 3rem 0;
+}
+
+.about-section h2 {
+  font-size: 2rem;
+  color: #0A3D62;
+  margin-bottom: 2rem;
+  font-weight: 800;
+  text-align: center;
+}
+
+.about-card {
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 2rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+}
+
+.about-card:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  transform: translateY(-4px);
+  border-color: #3498DB;
+}
+
+.about-card h2 {
+  color: #0A3D62;
+  font-size: 1.5rem;
+  margin: 0 0 1rem 0;
+  text-align: left;
+}
+
+.about-card p {
+  color: #334155;
+  line-height: 1.8;
+  margin: 0;
+}
+
+.values-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.values-list li {
+  color: #334155;
+  line-height: 1.8;
+  margin-bottom: 1rem;
+  padding-left: 1.5rem;
+  position: relative;
+}
+
+.values-list li::before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: #25D366;
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+
+.values-list li:last-child {
+  margin-bottom: 0;
+}
+
+.compliance-grid,
+.services-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+  margin: 2rem 0;
+}
+
+.compliance-card,
+.service-card {
+  background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 2rem;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.compliance-card:hover,
+.service-card:hover {
+  background: white;
+  border-color: #3498DB;
+  box-shadow: 0 8px 24px rgba(52, 152, 219, 0.1);
+  transform: translateY(-6px);
+}
+
+.compliance-icon {
+  font-size: 2.5rem;
+  color: #25D366;
+  margin-bottom: 1rem;
+  font-weight: bold;
+}
+
+.compliance-card h3,
+.service-card h3 {
+  color: #0A3D62;
+  font-size: 1.2rem;
+  margin: 0 0 0.5rem 0;
+  font-weight: 700;
+}
+
+.compliance-card p,
+.service-card p {
+  color: #6b7280;
+  margin: 0;
+  line-height: 1.6;
+}
+
+.about-promise {
+  background: linear-gradient(135deg, #0A3D62 0%, #3498DB 100%);
+  color: white;
+  padding: 3rem;
+  border-radius: 12px;
+  text-align: center;
+  margin: 2rem 0;
+}
+
+.promise-text {
+  font-size: 1.3rem;
+  line-height: 1.8;
+  margin: 0;
+  font-weight: 500;
+}
+
+.cta-section {
+  background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+  padding: 3rem 2rem;
+  border-radius: 12px;
+  text-align: center;
+  border: 1px solid #e5e7eb;
+}
+
+.cta-section h2 {
+  color: #0A3D62;
+  font-size: 2rem;
+  margin: 0 0 1rem 0;
+}
+
+.cta-section p {
+  color: #6b7280;
+  font-size: 1.1rem;
+  margin-bottom: 2rem;
+}
+
+.cta-button {
+  display: inline-block;
+  background: linear-gradient(135deg, #3498DB 0%, #2980B9 100%);
+  color: white;
+  padding: 1rem 2.5rem;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 1.1rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+}
+
+.cta-button:hover {
+  background: linear-gradient(135deg, #2980B9 0%, #1f618d 100%);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(52, 152, 219, 0.4);
+}
+
+@media (max-width: 1024px) {
+  .compliance-grid,
+  .services-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .about-hero h1 {
+    font-size: 2rem;
+  }
+
+  .about-section h2 {
+    font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .about-hero {
+    padding: 2rem 1.5rem;
+    margin: 1rem 0;
+  }
+
+  .about-hero h1 {
+    font-size: 1.5rem;
+  }
+
+  .about-hero p {
+    font-size: 1rem;
+  }
+
+  .about-card {
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .about-card h2 {
+    font-size: 1.2rem;
+  }
+
+  .compliance-grid,
+  .services-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .compliance-card,
+  .service-card {
+    padding: 1.5rem;
+  }
+
+  .about-promise {
+    padding: 2rem 1.5rem;
+  }
+
+  .promise-text {
+    font-size: 1.1rem;
+  }
+
+  .cta-section {
+    padding: 2rem 1.5rem;
+  }
+
+  .cta-section h2 {
+    font-size: 1.5rem;
+  }
+
+  .cta-button {
+    padding: 0.85rem 2rem;
+    font-size: 1rem;
+  }
+}
