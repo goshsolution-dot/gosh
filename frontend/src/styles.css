@@ -164,6 +164,28 @@ main {
 }
 
 @media (max-width: 768px) {
+  .header-nav {
+    gap: 0;
+  }
+
+  .nav-group-left {
+    display: none !important;
+  }
+
+  .nav-group-right {
+    gap: 0.5rem;
+    margin-left: auto;
+  }
+
+  .whatsapp-header-btn,
+  .admin-nav-link {
+    display: none !important;
+  }
+
+  .nav-menu-toggle {
+    display: block !important;
+  }
+
   .mobile-nav-menu a[href*="wa.me"] {
     background: #25D366;
     color: white;
@@ -2904,7 +2926,7 @@ button:disabled {
   left: 0;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
 }
 
 .gallery-controls {
@@ -3073,9 +3095,11 @@ button:disabled {
 
 .expanded-images img {
   width: 100%;
+  height: auto;
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   transition: transform 0.3s ease;
+  object-fit: contain;
 }
 
 .expanded-images img:hover {

@@ -62,6 +62,7 @@ function App() {
             <a href="/#systems" onClick={() => { handleNavClick(); setServiceDropdownOpen(false); }}>Systems</a>
             <Link to="/about" onClick={() => { handleNavClick(); setServiceDropdownOpen(false); }}>About Us</Link>
             <Link to="/contact" onClick={() => { handleNavClick(); setServiceDropdownOpen(false); }}>Contact</Link>
+            <Link to="/admin" onClick={() => { handleNavClick(); setServiceDropdownOpen(false); }}>Admin</Link>
             <a
               href="https://wa.me/265xxxxxxxxx"
               target="_blank"
