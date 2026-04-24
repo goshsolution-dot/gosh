@@ -1,17 +1,17 @@
+/**
+ * DynamoDB Configuration
+ * AWS serverless database for GOSH Project
+ */
+
 import dotenv from 'dotenv';
-import { Sequelize } from 'sequelize';
 
 dotenv.config();
 
-const dialect = (process.env.DB_DIALECT || 'sqlite') as 'sqlite' | 'postgres' | 'mysql';
-const storage = process.env.DB_STORAGE || './database.sqlite';
+export const dynamodbConfig = {
+  region: process.env.AWS_REGION || 'us-east-1',
+  tableName: process.env.DYNAMODB_TABLE_NAME || 'gosh-data-dev',
+  billingMode: process.env.DYNAMODB_BILLING_MODE || 'PAY_PER_REQUEST',
+  pointInTimeRecoveryEnabled: process.env.DYNAMODB_POINT_IN_TIME_RECOVERY === 'true',
+};
 
-const sequelize = process.env.DATABASE_URL
-  ? new Sequelize(process.env.DATABASE_URL, { logging: false })
-  : new Sequelize({
-      dialect,
-      storage,
-      logging: false,
-    });
-
-export default sequelize;
+export default dynamodbConfig;

@@ -1,194 +1,126 @@
-import { DataTypes, Model, Optional } from 'sequelize';
-import sequelize from '../config/database';
+/**
+ * TypeScript Interfaces for DynamoDB Entities
+ * These are type definitions only - no ORM used with DynamoDB
+ */
 
-interface IndustryAttributes {
-  id: number;
+// ============================================================================
+// ENTITY TYPES
+// ============================================================================
+
+export interface Industry {
+  id: string;
+  type: 'INDUSTRY';
   name: string;
+  timestamp: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
-interface SolutionAttributes {
-  id: number;
+export interface Solution {
+  id: string;
+  type: 'SOLUTION';
   name: string;
   description: string;
   demoLink?: string;
   demoAvailable: boolean;
-  industryId: number;
+  industryId: string;
+  timestamp: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
-interface CustomerAttributes {
-  id: number;
+export interface Customer {
+  id: string;
+  type: 'CUSTOMER';
   name: string;
   email: string;
   phone?: string;
+  timestamp: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
-interface BookingAttributes {
-  id: number;
-  type: 'demo' | 'discussion' | 'hosting';
-  customerId: number;
-  solutionId?: number;
+export interface Booking {
+  id: string;
+  type: 'BOOKING';
+  bookingType: 'demo' | 'discussion' | 'hosting';
+  customerId: string;
+  solutionId?: string;
   requestedDate?: string;
   message: string;
   provider?: string;
   serviceDetails?: string;
+  timestamp: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
-interface PaymentAttributes {
-  id: number;
-  customerId: number;
+export interface Payment {
+  id: string;
+  type: 'PAYMENT';
+  customerId: string;
   amount: number;
   transactionReference: string;
   service: string;
+  timestamp: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
-interface EquipmentAttributes {
-  id: number;
-  name: string;
-  description: string;
-  price: number;
-  available: boolean;
-}
-
-interface HomepageCardAttributes {
-  id: number;
+export interface HomepageCard {
+  id: string;
+  type: 'HOMEPAGE_CARD';
   title: string;
   subtitle: string;
   icon: string;
+  expandedText: string;
   badgeText?: string;
   demoLink?: string;
-  images: string;
-  expandedText?: string;
+  images?: string[];
   order: number;
-  industry?: string;
+  timestamp: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
-interface HomepageBackgroundAttributes {
-  id: number;
+export interface HomepageBackground {
+  id: string;
+  type: 'HOMEPAGE_BACKGROUND';
   title: string;
   imageData: string;
   order: number;
+  timestamp: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
-interface QuotationRequestAttributes {
-  id: number;
-  cardId: number;
-  customerName: string;
-  customerEmail: string;
-  customerPhone: string;
-  businessName: string;
+export interface Quotation {
+  id: string;
+  type: 'QUOTATION';
+  customerId: string;
+  description: string;
   requirements: string;
-  requestedDate: string;
-  status?: 'pending' | 'reviewed' | 'quoted' | 'rejected';
+  budget?: number;
+  timestamp: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
-type IndustryModel = Model<IndustryAttributes, Optional<IndustryAttributes, 'id'>> & IndustryAttributes;
-type SolutionModel = Model<SolutionAttributes, Optional<SolutionAttributes, 'id'>> & SolutionAttributes;
-type CustomerModel = Model<CustomerAttributes, Optional<CustomerAttributes, 'id'>> & CustomerAttributes;
-type BookingModel = Model<BookingAttributes, Optional<BookingAttributes, 'id'>> & BookingAttributes;
-type PaymentModel = Model<PaymentAttributes, Optional<PaymentAttributes, 'id'>> & PaymentAttributes;
-type EquipmentModel = Model<EquipmentAttributes, Optional<EquipmentAttributes, 'id'>> & EquipmentAttributes;
-type HomepageCardModel = Model<HomepageCardAttributes, Optional<HomepageCardAttributes, 'id'>> & HomepageCardAttributes;
-type HomepageBackgroundModel = Model<HomepageBackgroundAttributes, Optional<HomepageBackgroundAttributes, 'id'>> & HomepageBackgroundAttributes;
-type QuotationRequestModel = Model<QuotationRequestAttributes, Optional<QuotationRequestAttributes, 'id'>> & QuotationRequestAttributes;
+// ============================================================================
+// NOTES
+// ============================================================================
 
-const Industry = sequelize.define<IndustryModel>('Industry', {
-  id: { type: DataTypes.INTEGER.UNSIGNED, autoIncrement: true, primaryKey: true },
-  name: { type: DataTypes.STRING, allowNull: false, unique: true },
-});
-
-const Solution = sequelize.define<SolutionModel>('Solution', {
-  id: { type: DataTypes.INTEGER.UNSIGNED, autoIncrement: true, primaryKey: true },
-  name: { type: DataTypes.STRING, allowNull: false },
-  description: { type: DataTypes.TEXT, allowNull: false },
-  demoLink: { type: DataTypes.STRING, allowNull: true },
-  demoAvailable: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
-  industryId: { type: DataTypes.INTEGER.UNSIGNED, allowNull: false },
-});
-
-const Customer = sequelize.define<CustomerModel>('Customer', {
-  id: { type: DataTypes.INTEGER.UNSIGNED, autoIncrement: true, primaryKey: true },
-  name: { type: DataTypes.STRING, allowNull: false },
-  email: { type: DataTypes.STRING, allowNull: false },
-  phone: { type: DataTypes.STRING, allowNull: true },
-});
-
-const Booking = sequelize.define<BookingModel>('Booking', {
-  id: { type: DataTypes.INTEGER.UNSIGNED, autoIncrement: true, primaryKey: true },
-  type: { type: DataTypes.ENUM('demo', 'discussion', 'hosting'), allowNull: false },
-  customerId: { type: DataTypes.INTEGER.UNSIGNED, allowNull: false },
-  solutionId: { type: DataTypes.INTEGER.UNSIGNED, allowNull: true },
-  requestedDate: { type: DataTypes.STRING, allowNull: true },
-  message: { type: DataTypes.TEXT, allowNull: false },
-  provider: { type: DataTypes.STRING, allowNull: true },
-  serviceDetails: { type: DataTypes.TEXT, allowNull: true },
-});
-
-const Payment = sequelize.define<PaymentModel>('Payment', {
-  id: { type: DataTypes.INTEGER.UNSIGNED, autoIncrement: true, primaryKey: true },
-  customerId: { type: DataTypes.INTEGER.UNSIGNED, allowNull: false },
-  amount: { type: DataTypes.FLOAT, allowNull: false },
-  transactionReference: { type: DataTypes.STRING, allowNull: false },
-  service: { type: DataTypes.STRING, allowNull: false },
-});
-
-const Equipment = sequelize.define<EquipmentModel>('Equipment', {
-  id: { type: DataTypes.INTEGER.UNSIGNED, autoIncrement: true, primaryKey: true },
-  name: { type: DataTypes.STRING, allowNull: false },
-  description: { type: DataTypes.TEXT, allowNull: false },
-  price: { type: DataTypes.FLOAT, allowNull: false },
-  available: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: true },
-});
-
-const HomepageCard = sequelize.define<HomepageCardModel>('HomepageCard', {
-  id: { type: DataTypes.INTEGER.UNSIGNED, autoIncrement: true, primaryKey: true },
-  title: { type: DataTypes.STRING, allowNull: false },
-  subtitle: { type: DataTypes.TEXT, allowNull: false },
-  icon: { type: DataTypes.STRING, allowNull: false, defaultValue: '📦' },
-  badgeText: { type: DataTypes.STRING, allowNull: true },
-  demoLink: { type: DataTypes.STRING, allowNull: true },
-  images: { type: DataTypes.TEXT, allowNull: false, defaultValue: '[]' },
-  expandedText: { type: DataTypes.TEXT, allowNull: true },
-  order: { type: DataTypes.INTEGER.UNSIGNED, allowNull: false, defaultValue: 0 },
-  industry: { type: DataTypes.STRING, allowNull: true },
-});
-
-const HomepageBackground = sequelize.define<HomepageBackgroundModel>('HomepageBackground', {
-  id: { type: DataTypes.INTEGER.UNSIGNED, autoIncrement: true, primaryKey: true },
-  title: { type: DataTypes.STRING, allowNull: false },
-  imageData: { type: DataTypes.TEXT, allowNull: false },
-  order: { type: DataTypes.INTEGER.UNSIGNED, allowNull: false, defaultValue: 0 },
-});
-
-const QuotationRequest = sequelize.define<QuotationRequestModel>('QuotationRequest', {
-  id: { type: DataTypes.INTEGER.UNSIGNED, autoIncrement: true, primaryKey: true },
-  cardId: { type: DataTypes.INTEGER.UNSIGNED, allowNull: false },
-  customerName: { type: DataTypes.STRING, allowNull: false },
-  customerEmail: { type: DataTypes.STRING, allowNull: false },
-  customerPhone: { type: DataTypes.STRING, allowNull: false },
-  businessName: { type: DataTypes.STRING, allowNull: false },
-  requirements: { type: DataTypes.TEXT, allowNull: false },
-  requestedDate: { type: DataTypes.STRING, allowNull: false },
-  status: { type: DataTypes.ENUM('pending', 'reviewed', 'quoted', 'rejected'), allowNull: false, defaultValue: 'pending' },
-});
-
-Industry.hasMany(Solution, { foreignKey: 'industryId', as: 'solutions' });
-Solution.belongsTo(Industry, { foreignKey: 'industryId', as: 'industry' });
-Customer.hasMany(Booking, { foreignKey: 'customerId', as: 'bookings' });
-Booking.belongsTo(Customer, { foreignKey: 'customerId', as: 'customer' });
-Solution.hasMany(Booking, { foreignKey: 'solutionId', as: 'bookings' });
-Booking.belongsTo(Solution, { foreignKey: 'solutionId', as: 'solution' });
-Customer.hasMany(Payment, { foreignKey: 'customerId', as: 'payments' });
-Payment.belongsTo(Customer, { foreignKey: 'customerId', as: 'customer' });
-
-export {
-  sequelize,
-  Industry,
-  Solution,
-  Customer,
-  Booking,
-  Payment,
-  Equipment,
-  HomepageCard,
-  HomepageBackground,
-  QuotationRequest,
-};
+/**
+ * NOTE: This project uses AWS DynamoDB as the database, not a traditional SQL database.
+ * 
+ * Instead of using an ORM like Sequelize, we use:
+ * - AWS SDK v3 (@aws-sdk/client-dynamodb, @aws-sdk/lib-dynamodb)
+ * - Document Client for easier JSON-like operations
+ * - Single table design with entity type differentiation
+ * 
+ * All database operations are in: services/dynamodbService.ts
+ * Business logic layer: services/apiService.ts
+ * 
+ * The Sequelize models that were previously here have been removed as they
+ * are not compatible with DynamoDB (which is NoSQL, not SQL).
+ */

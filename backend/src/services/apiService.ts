@@ -1,191 +1,298 @@
-import { Customer, Industry, Payment, Booking, Solution, HomepageCard, HomepageBackground, QuotationRequest } from '../models/index';
+/**
+ * API Service - DynamoDB Implementation
+ * All operations use AWS DynamoDB instead of SQL databases
+ */
 
-interface RequestCustomerData {
-  name: string;
-  email: string;
-  phone?: string;
-}
+import * as db from './dynamodbService';
 
-async function findOrCreateCustomer(customer: RequestCustomerData) {
-  const [record] = await Customer.findOrCreate({
-    where: { email: customer.email },
-    defaults: { name: customer.name, email: customer.email, phone: customer.phone },
-  });
-  return record;
-}
+// ============================================================================
+// INDUSTRIES
+// ============================================================================
 
 export async function getIndustries() {
-  return Industry.findAll({ include: [{ model: Solution, as: 'solutions' }] });
+  try {
+    const industries = await db.IndustryOps.getAll();
+    return industries;
+  } catch (error) {
+    console.error('[API Service] Error getting industries:', error);
+    throw error;
+  }
 }
 
+// ============================================================================
+// SOLUTIONS
+// ============================================================================
+
 export async function getSolutions(industryId?: string) {
-  const where = industryId ? { industryId: Number(industryId) } : undefined;
-  return Solution.findAll({ where, include: [{ model: Industry, as: 'industry' }] });
+  try {
+    if (industryId) {
+      const solutions = await db.SolutionOps.getByIndustry(industryId);
+      return solutions;
+    }
+    const solutions = await db.SolutionOps.getAll();
+    return solutions;
+  } catch (error) {
+    console.error('[API Service] Error getting solutions:', error);
+    throw error;
+  }
 }
 
 export async function getSolutionById(id: number) {
-  return Solution.findByPk(id, { include: [{ model: Industry, as: 'industry' }] });
+  try {
+    const solution = await db.SolutionOps.getById(`SOLUTION#${id}`);
+    return solution;
+  } catch (error) {
+    console.error('[API Service] Error getting solution:', error);
+    throw error;
+  }
 }
 
-export async function requestDemo(data: {
-  solutionId: number;
-  requestedDate: string;
-  customer: RequestCustomerData;
-  message: string;
-}) {
-  const customer = await findOrCreateCustomer(data.customer);
-  return Booking.create({
-    type: 'demo',
-    customerId: customer.id,
-    solutionId: data.solutionId,
-    requestedDate: data.requestedDate,
-    message: data.message,
-  });
+// ============================================================================
+// HOMEPAGE DATA
+// ============================================================================
+
+export async function getHomepageData() {
+  try {
+    const [cards, backgrounds] = await Promise.all([
+      db.HomepageCardOps.getAll(),
+      db.HomepageBackgroundOps.getAll(),
+    ]);
+
+    return {
+      cards,
+      backgrounds,
+    };
+  } catch (error) {
+    console.error('[API Service] Error getting homepage data:', error);
+    throw error;
+  }
 }
 
-export async function requestDiscussion(data: {
-  solutionId?: number;
-  requestedDate?: string;
-  customer: RequestCustomerData;
-  message: string;
-}) {
-  const customer = await findOrCreateCustomer(data.customer);
-  return Booking.create({
-    type: 'discussion',
-    customerId: customer.id,
-    solutionId: data.solutionId,
-    requestedDate: data.requestedDate,
-    message: data.message,
-  });
+// ============================================================================
+// DEMO REQUESTS
+// ============================================================================
+
+export async function requestDemo(data: any) {
+  try {
+    const booking = await db.BookingOps.create({
+      type: 'demo',
+      customerId: data.customerId,
+      solutionId: data.solutionId,
+      requestedDate: data.requestedDate,
+      message: data.message,
+      serviceDetails: JSON.stringify(data),
+    });
+    return booking;
+  } catch (error) {
+    console.error('[API Service] Error creating demo request:', error);
+    throw error;
+  }
 }
 
-export async function submitPayment(data: {
-  customer: RequestCustomerData;
-  amount: number;
-  transactionReference: string;
-  service: string;
-}) {
-  const customer = await findOrCreateCustomer(data.customer);
-  return Payment.create({
-    customerId: customer.id,
-    amount: data.amount,
-    transactionReference: data.transactionReference,
-    service: data.service,
-  });
+// ============================================================================
+// DISCUSSION REQUESTS
+// ============================================================================
+
+export async function requestDiscussion(data: any) {
+  try {
+    const booking = await db.BookingOps.create({
+      type: 'discussion',
+      customerId: data.customerId,
+      solutionId: data.solutionId,
+      requestedDate: data.requestedDate,
+      message: data.message,
+      serviceDetails: JSON.stringify(data),
+    });
+    return booking;
+  } catch (error) {
+    console.error('[API Service] Error creating discussion request:', error);
+    throw error;
+  }
 }
 
-export async function requestHosting(data: {
-  customer: RequestCustomerData;
-  provider: string;
-  serviceDetails: string;
-  message: string;
-}) {
-  const customer = await findOrCreateCustomer(data.customer);
-  return Booking.create({
-    type: 'hosting',
-    customerId: customer.id,
-    message: data.message,
-    provider: data.provider,
-    serviceDetails: data.serviceDetails,
-  });
+// ============================================================================
+// PAYMENTS
+// ============================================================================
+
+export async function submitPayment(data: any) {
+  try {
+    const payment = await db.PaymentOps.create({
+      customerId: data.customerId,
+      amount: data.amount,
+      transactionReference: data.transactionReference,
+      service: data.service,
+    });
+    return payment;
+  } catch (error) {
+    console.error('[API Service] Error submitting payment:', error);
+    throw error;
+  }
 }
 
-export async function requestQuotation(data: {
-  cardId: number;
-  customer: RequestCustomerData;
-  business: string;
-  requirements: string;
-  requestedDate: string;
-}) {
-  return QuotationRequest.create({
-    cardId: data.cardId,
-    customerName: data.customer.name,
-    customerEmail: data.customer.email,
-    customerPhone: data.customer.phone || '',
-    businessName: data.business,
-    requirements: data.requirements,
-    requestedDate: data.requestedDate,
-    status: 'pending',
-  });
+// ============================================================================
+// HOSTING REQUESTS
+// ============================================================================
+
+export async function requestHosting(data: any) {
+  try {
+    const booking = await db.BookingOps.create({
+      type: 'hosting',
+      customerId: data.customerId,
+      requestedDate: data.requestedDate,
+      message: data.message,
+      provider: data.provider,
+      serviceDetails: JSON.stringify(data),
+    });
+    return booking;
+  } catch (error) {
+    console.error('[API Service] Error creating hosting request:', error);
+    throw error;
+  }
+}
+
+// ============================================================================
+// QUOTATION REQUESTS
+// ============================================================================
+
+export async function requestQuotation(data: any) {
+  try {
+    const quotation = await db.QuotationOps.create({
+      customerId: data.customerId,
+      description: data.description,
+      requirements: data.requirements,
+      budget: data.budget,
+    });
+    return quotation;
+  } catch (error) {
+    console.error('[API Service] Error creating quotation request:', error);
+    throw error;
+  }
 }
 
 export async function getQuotationRequests() {
-  return QuotationRequest.findAll({ order: [['id', 'DESC']] });
+  try {
+    const quotations = await db.QuotationOps.getAll();
+    return quotations;
+  } catch (error) {
+    console.error('[API Service] Error getting quotation requests:', error);
+    throw error;
+  }
 }
 
-export async function getHomepageData() {
-  const cards = await HomepageCard.findAll({ order: [['order', 'ASC']] });
-  const backgrounds = await HomepageBackground.findAll({ order: [['order', 'ASC']] });
-  return {
-    cards: cards.map((card) => ({
-      ...card.toJSON(),
-      images: JSON.parse(card.images || '[]'),
-    })),
-    backgrounds: backgrounds.map((background) => background.toJSON()),
-  };
-}
+// ============================================================================
+// HOMEPAGE CARDS
+// ============================================================================
 
-export async function createHomepageCard(data: {
-  title: string;
-  subtitle: string;
-  icon: string;
-  badgeText?: string;
-  demoLink?: string;
-  images: string[];
-  expandedText?: string;
-  order?: number;
-}) {
-  return HomepageCard.create({
-    title: data.title,
-    subtitle: data.subtitle,
-    icon: data.icon,
-    badgeText: data.badgeText,
-    demoLink: data.demoLink,
-    images: JSON.stringify(data.images || []),
-    expandedText: data.expandedText,
-    order: data.order || 0,
-  });
+export async function createHomepageCard(data: any) {
+  try {
+    const card = await db.HomepageCardOps.create({
+      title: data.title,
+      subtitle: data.subtitle,
+      icon: data.icon,
+      expandedText: data.expandedText,
+      badgeText: data.badgeText,
+      demoLink: data.demoLink,
+      images: data.images || [],
+      order: data.order || 0,
+    });
+    return card;
+  } catch (error) {
+    console.error('[API Service] Error creating homepage card:', error);
+    throw error;
+  }
 }
 
 export async function deleteHomepageCard(id: number) {
-  const card = await HomepageCard.findByPk(id);
-  if (!card) return null;
-  await card.destroy();
-  return card;
+  try {
+    await db.HomepageCardOps.delete(`HOMEPAGE_CARD#${id}`);
+    return { id };
+  } catch (error) {
+    console.error('[API Service] Error deleting homepage card:', error);
+    throw error;
+  }
 }
 
-export async function createHomepageBackground(data: {
-  title: string;
-  imageData: string;
-  order?: number;
-}) {
-  return HomepageBackground.create({
-    title: data.title,
-    imageData: data.imageData,
-    order: data.order || 0,
-  });
+// ============================================================================
+// HOMEPAGE BACKGROUNDS
+// ============================================================================
+
+export async function createHomepageBackground(data: any) {
+  try {
+    const background = await db.HomepageBackgroundOps.create({
+      title: data.title,
+      imageData: data.imageData,
+      order: data.order || 0,
+    });
+    return background;
+  } catch (error) {
+    console.error('[API Service] Error creating homepage background:', error);
+    throw error;
+  }
 }
 
 export async function deleteHomepageBackground(id: number) {
-  const background = await HomepageBackground.findByPk(id);
-  if (!background) return null;
-  await background.destroy();
-  return background;
+  try {
+    await db.HomepageBackgroundOps.delete(`HOMEPAGE_BACKGROUND#${id}`);
+    return { id };
+  } catch (error) {
+    console.error('[API Service] Error deleting homepage background:', error);
+    throw error;
+  }
 }
+
+// ============================================================================
+// ADMIN OVERVIEW
+// ============================================================================
 
 export async function getAdminOverview() {
-  const solutionCount = await Solution.count();
-  const industryCount = await Industry.count();
-  const customerCount = await Customer.count();
-  const bookingCount = await Booking.count();
-  const paymentCount = await Payment.count();
-  return { solutionCount, industryCount, customerCount, bookingCount, paymentCount };
+  try {
+    const [industries, solutions, bookings, payments, quotations] = await Promise.all([
+      db.IndustryOps.getAll(),
+      db.SolutionOps.getAll(),
+      db.BookingOps.getAll(),
+      db.PaymentOps.getAll(),
+      db.QuotationOps.getAll(),
+    ]);
+
+    return {
+      industryCount: industries.length,
+      solutionCount: solutions.length,
+      bookingCount: bookings.length,
+      paymentCount: payments.length,
+      quotationCount: quotations.length,
+      totalRevenue: payments.reduce((sum, p) => sum + (p.amount || 0), 0),
+    };
+  } catch (error) {
+    console.error('[API Service] Error getting admin overview:', error);
+    throw error;
+  }
 }
 
+// ============================================================================
+// ADMIN RECORDS
+// ============================================================================
+
 export async function getAdminRecords() {
-  const solutions = await Solution.findAll({ include: [{ model: Industry, as: 'industry' }] });
-  const bookings = await Booking.findAll({ include: [{ model: Customer, as: 'customer' }, { model: Solution, as: 'solution' }] });
-  const payments = await Payment.findAll({ include: [{ model: Customer, as: 'customer' }] });
-  const customers = await Customer.findAll();
-  return { solutions, bookings, payments, customers };
+  try {
+    const [industries, solutions, bookings, payments, quotations, customers] = await Promise.all([
+      db.IndustryOps.getAll(),
+      db.SolutionOps.getAll(),
+      db.BookingOps.getAll(),
+      db.PaymentOps.getAll(),
+      db.QuotationOps.getAll(),
+      db.CustomerOps.getAll(),
+    ]);
+
+    return {
+      industries,
+      solutions,
+      bookings,
+      payments,
+      quotations,
+      customers,
+    };
+  } catch (error) {
+    console.error('[API Service] Error getting admin records:', error);
+    throw error;
+  }
 }

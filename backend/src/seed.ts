@@ -1,19 +1,56 @@
-import { sequelize } from './models/index';
-const { HomepageCard, HomepageBackground } = sequelize.models || {};
+/**
+ * Seed initial data for GOSH application
+ * Creates Industries, Solutions, and Homepage content
+ */
 
-async function seedData() {
+import { IndustryOps, SolutionOps, HomepageCardOps, HomepageBackgroundOps } from './services/dynamodbService';
+
+export async function seedInitialData() {
   try {
-    console.log('Starting seed...');
-    
-    // Sync database
-    await sequelize.sync();
-    console.log('Database synced');
+    // Check if data already exists
+    const existingIndustries = await IndustryOps.getAll();
+    if (existingIndustries.length > 0) {
+      console.log('[Seed] Data already exists, skipping seed');
+      return;
+    }
 
-    const Card = sequelize.models.HomepageCard;
-    const Background = sequelize.models.HomepageBackground;
+    console.log('[Seed] Starting data initialization...');
 
-    // Create sample homepage cards
-    const card1 = await Card.create({
+    // Create Industries
+    const educationIndustry = await IndustryOps.create({ name: 'Education' });
+    const retailIndustry = await IndustryOps.create({ name: 'Retail' });
+    const healthIndustry = await IndustryOps.create({ name: 'Health' });
+
+    console.log('[Seed] Industries created');
+
+    // Create Solutions
+    await SolutionOps.create({
+      name: 'Learning Management System',
+      description: 'A modern LMS for schools and training providers.',
+      demoLink: 'https://example.com/lms-demo',
+      demoAvailable: true,
+      industryId: educationIndustry.id,
+    });
+
+    await SolutionOps.create({
+      name: 'Retail Inventory Platform',
+      description: 'Inventory and sales management for retail businesses.',
+      demoAvailable: false,
+      industryId: retailIndustry.id,
+    });
+
+    await SolutionOps.create({
+      name: 'Health Clinic Portal',
+      description: 'Patient management and appointment booking.',
+      demoLink: 'https://example.com/health-demo',
+      demoAvailable: true,
+      industryId: healthIndustry.id,
+    });
+
+    console.log('[Seed] Solutions created');
+
+    // Create Homepage Cards
+    await HomepageCardOps.create({
       title: 'Hotel Management System',
       subtitle: 'Complete booking and operations management',
       icon: '🏨',
@@ -24,7 +61,7 @@ async function seedData() {
       order: 1,
     });
 
-    const card2 = await Card.create({
+    await HomepageCardOps.create({
       title: 'Retail POS Solution',
       subtitle: 'Point of sale and inventory tracking',
       icon: '🛒',
@@ -35,7 +72,7 @@ async function seedData() {
       order: 2,
     });
 
-    const card3 = await Card.create({
+    await HomepageCardOps.create({
       title: 'Pharmacy Management',
       subtitle: 'Prescription and stock management',
       icon: '💊',
@@ -46,30 +83,19 @@ async function seedData() {
       order: 3,
     });
 
-    console.log('✓ Created 3 homepage cards');
+    console.log('[Seed] Homepage cards created');
 
-    // Create sample background images
-    const bg1 = await Background.create({
+    // Create Homepage Backgrounds
+    await HomepageBackgroundOps.create({
       title: 'Blue Gradient',
       imageData: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
       order: 1,
     });
 
-    const bg2 = await Background.create({
-      title: 'Pink Gradient',
-      imageData: 'linear-gradient(to right, #f093fb 0%, #f5576c 100%)',
-      order: 2,
-    });
-
-    console.log('✓ Created 2 background images');
-    console.log('✓ Seed completed!');
-    
-    await sequelize.close();
-    process.exit(0);
+    console.log('[Seed] Homepage backgrounds created');
+    console.log('[Seed] Initial data seeding complete!');
   } catch (error) {
-    console.error('✗ Error:', error);
-    process.exit(1);
+    console.error('[Seed] Error during seeding:', error);
+    // Don't throw - allow app to continue even if seeding fails
   }
 }
-
-seedData();

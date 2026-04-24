@@ -35,7 +35,7 @@ dotenv.config();
 const dynamodbClient = new DynamoDBClient({ region: process.env.AWS_REGION || 'us-east-1' });
 const docClient = DynamoDBDocumentClient.from(dynamodbClient);
 
-// Single unified DynamoDB table for all operations
+// Single unified DynamoDB table for all operationss
 const TABLE_NAME = process.env.DYNAMODB_TABLE_NAME || 'gosh-dynamodb-table';
 
 /**
