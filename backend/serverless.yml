@@ -1,0 +1,78 @@
+service: gosh-backend
+
+frameworkVersion: '3'
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: ${env:AWS_REGION, 'us-east-1'}
+  stage: ${env:STAGE, 'dev'}
+  memorySize: 512
+  timeout: 30
+  
+  environment:
+    NODE_ENV: ${env:NODE_ENV, 'production'}
+    DB_DIALECT: ${env:DB_DIALECT, 'postgres'}
+    DB_HOST: ${env:DB_HOST}
+    DB_PORT: ${env:DB_PORT, '5432'}
+    DB_USER: ${env:DB_USER}
+    DB_PASSWORD: ${env:DB_PASSWORD}
+    DB_NAME: ${env:DB_NAME, 'gosh'}
+    DB_SSL: ${env:DB_SSL, 'true'}
+    UPLOADS_BUCKET_NAME: ${env:UPLOADS_BUCKET_NAME}
+    FRONTEND_BUCKET_NAME: ${env:FRONTEND_BUCKET_NAME}
+    FRONTEND_URL: ${env:FRONTEND_URL}
+    JWT_SECRET: ${env:JWT_SECRET}
+    ADMIN_EMAIL: ${env:ADMIN_EMAIL}
+    ADMIN_PASSWORD: ${env:ADMIN_PASSWORD}
+    AWS_REGION: ${env:AWS_REGION, 'us-east-1'}
+    CLOUDFRONT_DOMAIN: ${env:CLOUDFRONT_DOMAIN, ''}
+  
+  iam:
+    role:
+      statements:
+        # S3 permissions for uploads bucket
+        - Effect: Allow
+          Action:
+            - s3:GetObject
+            - s3:PutObject
+            - s3:DeleteObject
+            - s3:ListBucket
+          Resource:
+            - arn:aws:s3:::${env:UPLOADS_BUCKET_NAME}
+            - arn:aws:s3:::${env:UPLOADS_BUCKET_NAME}/*
+        
+        # Logs permissions
+        - Effect: Allow
+          Action:
+            - logs:CreateLogGroup
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+          Resource: arn:aws:logs:${aws:region}:${aws:accountId}:log-group:/aws/lambda/*
+
+functions:
+  api:
+    handler: dist/lambda.handler
+    description: GOSH Backend API (Lambda Function)
+    events:
+      - http:
+          path: /{proxy+}
+          method: ANY
+          cors: true
+      - http:
+          path: /
+          method: ANY
+          cors: true
+
+plugins:
+  - serverless-esbuild
+
+custom:
+  esbuild:
+    bundle: true
+    minify: true
+    sourcemap: false
+    target: node18
+    exclude:
+      - aws-sdk
+      - sqlite3
