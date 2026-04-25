@@ -8,5 +8,5 @@ export const handler = async (event: any, context: any) => {
     cachedServer = serverless.createServer(app);
   }
 
-  return serverless.proxy(cachedServer, event, context);
+  return serverless.proxy(cachedServer, event, context, 'PROMISE').promise;
 };

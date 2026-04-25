@@ -25,11 +25,7 @@ export async function getIndustries() {
 
 export async function getSolutions(industryId?: string) {
   try {
-    if (industryId) {
-      const solutions = await db.SolutionOps.getByIndustry(industryId);
-      return solutions;
-    }
-    const solutions = await db.SolutionOps.getAll();
+    const solutions = await db.SolutionOps.getAll(industryId);
     return solutions;
   } catch (error) {
     console.error('[API Service] Error getting solutions:', error);
@@ -157,10 +153,14 @@ export async function requestHosting(data: any) {
 export async function requestQuotation(data: any) {
   try {
     const quotation = await db.QuotationOps.create({
-      customerId: data.customerId,
-      description: data.description,
+      cardId: data.cardId,
+      customerName: data.customerName,
+      customerEmail: data.customerEmail,
+      customerPhone: data.customerPhone,
+      businessName: data.businessName,
       requirements: data.requirements,
-      budget: data.budget,
+      requestedDate: data.requestedDate,
+      status: data.status || 'pending',
     });
     return quotation;
   } catch (error) {
@@ -260,7 +260,7 @@ export async function getAdminOverview() {
       bookingCount: bookings.length,
       paymentCount: payments.length,
       quotationCount: quotations.length,
-      totalRevenue: payments.reduce((sum, p) => sum + (p.amount || 0), 0),
+      totalRevenue: payments.reduce((sum: number, p: any) => sum + (p.amount || 0), 0),
     };
   } catch (error) {
     console.error('[API Service] Error getting admin overview:', error);

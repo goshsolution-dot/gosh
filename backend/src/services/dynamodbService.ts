@@ -62,6 +62,7 @@ export async function initializeDynamoDBTable() {
               { AttributeName: 'timestamp', AttributeType: 'N' },
               { AttributeName: 'type', AttributeType: 'S' },
               { AttributeName: 'id', AttributeType: 'S' },
+              { AttributeName: 'email', AttributeType: 'S' },
             ],
             BillingMode: 'PAY_PER_REQUEST', // Pay-per-request for cost efficiency
             GlobalSecondaryIndexes: [
@@ -295,6 +296,25 @@ export const CustomerOps = {
 
     return { id, ...data };
   },
+
+  async getAll() {
+    const result = await docClient.send(
+      new QueryCommand({
+        TableName: TABLE_NAME,
+        IndexName: 'type-timestamp-index',
+        KeyConditionExpression: '#type = :type',
+        ExpressionAttributeNames: { '#type': 'type' },
+        ExpressionAttributeValues: { ':type': 'CUSTOMER' },
+      })
+    );
+
+    return (result.Items || []).map((item: any) => ({
+      id: item.id,
+      name: item.name,
+      email: item.email,
+      phone: item.phone,
+    }));
+  },
 };
 
 /**
@@ -384,6 +404,27 @@ export const PaymentOps = {
     );
 
     return { id, ...data };
+  },
+
+  async getAll() {
+    const result = await docClient.send(
+      new QueryCommand({
+        TableName: TABLE_NAME,
+        IndexName: 'type-timestamp-index',
+        KeyConditionExpression: '#type = :type',
+        ExpressionAttributeNames: { '#type': 'type' },
+        ExpressionAttributeValues: { ':type': 'PAYMENT' },
+        ScanIndexForward: false, // Sort descending (newest first)
+      })
+    );
+
+    return (result.Items || []).map((item: any) => ({
+      id: item.id,
+      customerId: item.customerId,
+      amount: item.amount,
+      transactionReference: item.transactionReference,
+      service: item.service,
+    }));
   },
 };
 
