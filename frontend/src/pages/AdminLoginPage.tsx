@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { awsConfig } from '../aws-config';
 
 function AdminLoginPage() {
   const [email, setEmail] = useState('');
@@ -14,7 +15,7 @@ function AdminLoginPage() {
     setError('');
 
     try {
-      const response = await fetch('/api/admin/login', {
+      const response = await fetch(`${awsConfig.apiEndpoint}/api/admin/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),

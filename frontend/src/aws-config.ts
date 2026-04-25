@@ -11,7 +11,7 @@ export const awsConfig = {
   cloudFrontDomain: process.env.REACT_APP_CLOUDFRONT_DOMAIN || null,
   
   // API Gateway endpoint for backend Lambda
-  apiEndpoint: process.env.REACT_APP_API_ENDPOINT || 'https://api.gosh.local/api',
+  apiEndpoint: process.env.REACT_APP_API_ENDPOINT || 'https://yoe7524zbi.execute-api.us-east-1.amazonaws.com',
   
   // S3 uploads bucket for direct uploads
   uploadsBucket: process.env.REACT_APP_UPLOADS_BUCKET_NAME || 'gosh-uploads',

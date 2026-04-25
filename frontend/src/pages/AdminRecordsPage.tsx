@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { awsConfig } from '../aws-config';
 
 interface Customer {
   id: number;
@@ -69,12 +70,12 @@ function AdminRecordsPage() {
     }
 
     Promise.all([
-      fetch('/api/admin/records', {
+      fetch(`${awsConfig.apiEndpoint}/api/admin/records`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       }),
-      fetch('/api/admin/quotation-requests', {
+      fetch(`${awsConfig.apiEndpoint}/api/admin/quotation-requests`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

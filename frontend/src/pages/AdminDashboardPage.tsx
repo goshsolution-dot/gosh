@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { awsConfig } from '../aws-config';
 
 interface OverviewData {
   solutionCount: number;
@@ -62,8 +63,8 @@ function AdminDashboardPage() {
     async function loadDashboard() {
       try {
         const [overviewRes, homepageRes] = await Promise.all([
-          fetch('/api/admin/overview', { headers: { Authorization: `Bearer ${token}` } }),
-          fetch('/api/homepage'),
+          fetch(`${awsConfig.apiEndpoint}/api/admin/overview`, { headers: { Authorization: `Bearer ${token}` } }),
+          fetch(`${awsConfig.apiEndpoint}/api/homepage`),
         ]);
 
         if (overviewRes.status === 401) {
@@ -94,7 +95,7 @@ function AdminDashboardPage() {
 
   const loadHomepageContent = async () => {
     try {
-      const response = await fetch('/api/homepage');
+      const response = await fetch(`${awsConfig.apiEndpoint}/api/homepage`);
       const data = await response.json();
       if (data.success) {
         setHomepageCards(data.data.cards);
@@ -129,7 +130,7 @@ function AdminDashboardPage() {
     setStatusMessage('Saving new card...');
 
     try {
-      const response = await fetch('/api/admin/homepage/cards', {
+      const response = await fetch(`${awsConfig.apiEndpoint}/api/admin/homepage/cards`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -165,7 +166,7 @@ function AdminDashboardPage() {
     setStatusMessage('Saving new background image...');
 
     try {
-      const response = await fetch('/api/admin/homepage/backgrounds', {
+      const response = await fetch(`${awsConfig.apiEndpoint}/api/admin/homepage/backgrounds`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -195,7 +196,7 @@ function AdminDashboardPage() {
     if (!window.confirm('Delete this homepage card?')) return;
 
     try {
-      const response = await fetch(`/api/admin/homepage/cards/${id}`, {
+      const response = await fetch(`${awsConfig.apiEndpoint}/api/admin/homepage/cards/${id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -215,7 +216,7 @@ function AdminDashboardPage() {
     if (!window.confirm('Delete this background image?')) return;
 
     try {
-      const response = await fetch(`/api/admin/homepage/backgrounds/${id}`, {
+      const response = await fetch(`${awsConfig.apiEndpoint}/api/admin/homepage/backgrounds/${id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
       });

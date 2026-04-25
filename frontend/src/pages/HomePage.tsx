@@ -1,4 +1,5 @@
 import { FormEvent, useEffect, useState } from 'react';
+import { awsConfig } from '../aws-config';
 
 type HomepageCard = {
   id: number;
@@ -26,6 +27,25 @@ type HomepageData = {
 };
 
 function HomePage() {
+  const apiFetch = async (path: string, options: RequestInit = {}) => {
+    const url = `${awsConfig.apiEndpoint}${path}`;
+    console.log("Calling API:", url);
+
+    const response = await fetch(url, {
+      headers: {
+        'Content-Type': 'application/json',
+        ...(options.headers || {}),
+      },
+      ...options,
+    });
+
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status}`);
+    }
+
+    return response.json();
+  };
+
   const [homepageData, setHomepageData] = useState<HomepageData>({ cards: [], backgrounds: [] });
   const [loading, setLoading] = useState(true);
   const [expandedCardId, setExpandedCardId] = useState<number | null>(null);
@@ -36,6 +56,7 @@ function HomePage() {
   const [whatsappLink, setWhatsappLink] = useState('');
   const [demoSource, setDemoSource] = useState<'hero' | 'card' | null>(null);
   const [formType, setFormType] = useState<'demo' | 'project' | 'quotation'>('demo');
+
   const [demoForm, setDemoForm] = useState({
     name: '',
     email: '',
@@ -44,6 +65,7 @@ function HomePage() {
     message: '',
     solutionId: null as number | null,
   });
+
   const [quotationForm, setQuotationForm] = useState({
     name: '',
     email: '',
@@ -52,26 +74,40 @@ function HomePage() {
     selectedCard: null as number | null,
     requirements: '',
   });
+
   const [error, setError] = useState('');
   const [selectedIndustry, setSelectedIndustry] = useState<string>('all');
   const [industries, setIndustries] = useState<string[]>([]);
 
+  // ✅ LOAD HOMEPAGE
   useEffect(() => {
     async function loadHomepage() {
       try {
-        const response = await fetch('/api/homepage');
-        if (!response.ok) {
-          setError('Unable to load homepage content.');
+        const response = await apiFetch('/api/homepage');
+        
+        // Extract data from API response wrapper
+        const data = response.data || response;
+        
+        if (!data || !data.cards) {
+          console.warn('Invalid homepage data received:', response);
+          setHomepageData({ cards: [], backgrounds: [] });
+          setIndustries([]);
           return;
         }
-        const data = await response.json();
-        setHomepageData(data.data);
-        
-        // Extract unique industries from cards
-        const uniqueIndustries = [...new Set(data.data.cards.map((card: HomepageCard) => card.industry || 'General'))];
+
+        setHomepageData(data);
+
+        const uniqueIndustries = [
+          ...new Set(
+            data.cards.map((card: HomepageCard) => card.industry || 'General')
+          ),
+        ];
+
         setIndustries(uniqueIndustries);
       } catch (err) {
-        setError('Unable to load homepage content.');
+        console.error('Error loading homepage:', err);
+        setError('Unable to load homepage content. Please refresh the page.');
+        setHomepageData({ cards: [], backgrounds: [] });
       } finally {
         setLoading(false);
       }
@@ -80,101 +116,23 @@ function HomePage() {
     loadHomepage();
   }, []);
 
-  // Carousel rotation effect
+  // ✅ CAROUSEL
   useEffect(() => {
     if (homepageData.cards.length === 0) return;
-    
-    const carouselInterval = setInterval(() => {
+
+    const interval = setInterval(() => {
       setCarouselIndex((prev) => (prev + 1) % homepageData.cards.length);
-    }, 5000); // Rotate every 5 seconds
-    
-    return () => clearInterval(carouselInterval);
+    }, 5000);
+
+    return () => clearInterval(interval);
   }, [homepageData.cards.length]);
 
-  const expandedCard = homepageData.cards.find((card) => card.id === expandedCardId);
+  const expandedCard = homepageData.cards.find((c) => c.id === expandedCardId);
 
-  const handleOpenDemoForm = (source: 'hero' | 'card' = 'hero', cardId?: number) => {
-    setFormType('demo');
-    setDemoSource(source);
-    if (cardId) {
-      setDemoForm(prev => ({ ...prev, solutionId: cardId }));
-    }
-    setIsDemoFormOpen(true);
-    setDemoSubmitted(false);
-  };
-
-  const handleOpenProjectForm = () => {
-    setFormType('project');
-    setDemoSource('hero');
-    setIsDemoFormOpen(true);
-    setDemoSubmitted(false);
-  };
-
-  const handleOpenQuotationForm = (cardId?: number) => {
-    setFormType('quotation');
-    setDemoSource('hero');
-    setIsDemoFormOpen(true);
-    setDemoSubmitted(false);
-    setQuotationForm({
-      name: '',
-      email: '',
-      phone: '',
-      business: '',
-      selectedCard: cardId || null,
-      requirements: '',
-    });
-  };
-
-  const handleCloseDemoForm = () => {
-    setIsDemoFormOpen(false);
-    setDemoSubmitted(false);
-    setDemoForm({ name: '', email: '', phone: '', business: '', message: '', solutionId: null });
-    setQuotationForm({ name: '', email: '', phone: '', business: '', selectedCard: null, requirements: '' });
-    setWhatsappLink('');
-    setDemoSource(null);
-  };
-
+  // ✅ DEMO SUBMIT
   const handleDemoFormSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    
-    try {
-      // Submit to backend
-      const demoData = {
-        solutionId: demoForm.solutionId || 1, // Default to first solution if not specified
-        requestedDate: new Date().toISOString().split('T')[0], // Today's date
-        customer: {
-          name: demoForm.name,
-          email: demoForm.email,
-          phone: demoForm.phone,
-        },
-        message: demoForm.message,
-      };
 
-      const response = await fetch('/api/demo-requests', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(demoData),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to submit demo request');
-      }
-
-      // Create WhatsApp message
-      const cardInfo = demoSource === 'card' && expandedCard ? `\nCard: ${expandedCard.title}` : '';
-      const message = `Hello GOSH Solutions, I would like to book a free demo.${cardInfo}\nName: ${demoForm.name}\nEmail: ${demoForm.email}\nPhone: ${demoForm.phone}\nBusiness: ${demoForm.business}\nDetails: ${demoForm.message}`;
-      setWhatsappLink(`https://wa.me/265xxxxxxxxx?text=${encodeURIComponent(message)}`);
-      setDemoSubmitted(true);
-    } catch (error) {
-      console.error('Error submitting demo request:', error);
-      alert('Failed to submit demo request. Please try again.');
-    }
-  };
-
-  const handleWhatsAppSubmit = async () => {
-    // Submit to backend first
     try {
       const demoData = {
         solutionId: demoForm.solutionId || 1,
@@ -187,709 +145,167 @@ function HomePage() {
         message: demoForm.message,
       };
 
-      await fetch('/api/demo-requests', {
+      await apiFetch('/api/demo-requests', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify(demoData),
       });
-    } catch (error) {
-      console.error('Error submitting demo request:', error);
-    }
 
-    // Open WhatsApp
-    const cardInfo = demoSource === 'card' && expandedCard ? `\nCard: ${expandedCard.title}` : '';
-    const message = `Hello GOSH Solutions, I would like to book a free demo.${cardInfo}\nName: ${demoForm.name}\nEmail: ${demoForm.email}\nPhone: ${demoForm.phone}\nBusiness: ${demoForm.business}\nDetails: ${demoForm.message}`;
-    const whatsappUrl = `https://wa.me/265xxxxxxxxx?text=${encodeURIComponent(message)}`;
-    window.open(whatsappUrl, '_blank');
+      const message = `Hello GOSH Solutions, I would like a demo.
+Name: ${demoForm.name}
+Phone: ${demoForm.phone}`;
+
+      setWhatsappLink(`https://wa.me/265xxxxxxxxx?text=${encodeURIComponent(message)}`);
+      setDemoSubmitted(true);
+    } catch (err) {
+      console.error(err);
+      alert('Failed to submit demo request.');
+    }
   };
 
+  // ✅ WHATSAPP SUBMIT
+  const handleWhatsAppSubmit = async () => {
+    try {
+      await apiFetch('/api/demo-requests', {
+        method: 'POST',
+        body: JSON.stringify({
+          solutionId: demoForm.solutionId || 1,
+          requestedDate: new Date().toISOString().split('T')[0],
+          customer: {
+            name: demoForm.name,
+            email: demoForm.email,
+            phone: demoForm.phone,
+          },
+          message: demoForm.message,
+        }),
+      });
+    } catch (err) {
+      console.error(err);
+    }
+
+    window.open(
+      `https://wa.me/265xxxxxxxxx?text=${encodeURIComponent("Demo request")}`,
+      '_blank'
+    );
+  };
+
+  // ✅ QUOTATION SUBMIT
   const handleQuotationSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     try {
-      const quotationData = {
-        cardId: quotationForm.selectedCard,
-        customer: {
-          name: quotationForm.name,
-          email: quotationForm.email,
-          phone: quotationForm.phone,
-        },
-        business: quotationForm.business,
-        requirements: quotationForm.requirements,
-        requestedDate: new Date().toISOString().split('T')[0],
-      };
-
-      const response = await fetch('/api/quotation-requests', {
+      await apiFetch('/api/quotation-requests', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(quotationData),
+        body: JSON.stringify({
+          cardId: quotationForm.selectedCard,
+          customer: {
+            name: quotationForm.name,
+            email: quotationForm.email,
+            phone: quotationForm.phone,
+          },
+          business: quotationForm.business,
+          requirements: quotationForm.requirements,
+          requestedDate: new Date().toISOString().split('T')[0],
+        }),
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to submit quotation request');
-      }
-
-      alert('✓ Quotation request submitted successfully! Our team will review and contact you shortly.');
-      handleCloseDemoForm();
-    } catch (error) {
-      console.error('Error submitting quotation request:', error);
-      alert('Failed to submit quotation request. Please try again.');
-    }
-  };
-
-  const handleNextImage = () => {
-    if (expandedCard && expandedCard.images.length > 0) {
-      setCurrentImageIndex((prev) => (prev + 1) % expandedCard.images.length);
-    }
-  };
-
-  const handlePrevImage = () => {
-    if (expandedCard && expandedCard.images.length > 0) {
-      setCurrentImageIndex((prev) => (prev - 1 + expandedCard.images.length) % expandedCard.images.length);
+      alert('✓ Quotation submitted!');
+    } catch (err) {
+      console.error(err);
+      alert('Failed to submit quotation.');
     }
   };
 
   return (
-    <div className="homepage-page">
-
-      {/* HERO SECTION */}
-      <section className="hero-section" id="home">
-        <div className="hero-backgrounds">
-          {homepageData.backgrounds.map((background, index) => {
-            const imageStyle = background.imageData.trim().startsWith('linear-gradient')
-              ? background.imageData
-              : `url(${background.imageData})`;
-
-            return (
-              <div
-                key={background.id}
-                className={`hero-bg hero-bg-${index % 5}`}
-                style={{ backgroundImage: imageStyle }}
-                aria-hidden="true"
-              />
-            );
-          })}
-        </div>
-        <div className="hero-container">
-          <div className="hero-left">
-            <h1 className="hero-headline">We Build Websites/Systems That Run Your Online Businesses</h1>
-            <p className="hero-subhead">
-              Hotel Management, Take-Away/Restraunt Ordering System, Loan Management, /Hospital/Pharmacy, Property Management, Online Ticketing Systems, Bar/Pub Management, Air BnB management software. <br />
-              Built in Malawi, for Malawi. + Custom development.
-            </p>
-            <div className="hero-buttons">
-              <a href="#systems" className="btn btn-primary btn-lg">
-                View Our Systems
-              </a>
-              <button type="button" className="btn btn-secondary btn-lg" onClick={() => handleOpenQuotationForm()}>
-                Get a Quotation
-              </button>
-            </div>
-            <div className="trust-bar-hero">
-              <span>✓ Trusted by 30+ businesses in Lilongwe & Blantyre</span>
-            </div>
-          </div>
-              {/* ALTERNATING CARDS PREVIEW - RIGHT SIDE */}
-              <div className="dashboard-preview-container">
-                <div className="dashboard-preview">
-                  <div className="preview-header">
-                    <h3>✨ Featured Systems</h3>
-                    <p>Rotating showcase of our solutions</p>
-                  </div>
-                  <div className="alternating-cards-container">
-                    {homepageData.cards
-                      .filter(card => selectedIndustry === 'all' || (card.industry || 'General') === selectedIndustry)
-                      .map((card, index) => {
-                        const isActive = index === carouselIndex % homepageData.cards.length;
-                        return (
-                          <div
-                            key={`preview-${card.id}`}
-                            className={`alternating-card ${isActive ? 'active' : ''}`}
-                            style={{
-                              transform: `translateX(${(index - carouselIndex) * 100}%)`,
-                              transition: 'transform 0.5s ease-in-out'
-                            }}
-                          >
-                            <div className="preview-card-content">
-                              <div className="preview-card-icon">
-                                <span>{card.icon}</span>
-                              </div>
-                              <h4 className="preview-card-title">{card.title}</h4>
-                              <p className="preview-card-description">{card.subtitle}</p>
-                              {card.badgeText && (
-                                <span className="preview-card-badge">{card.badgeText}</span>
-                              )}
-                              <div className="preview-card-features">
-                                <div className="feature-item">✓ Real-time updates</div>
-                                <div className="feature-item">✓ Mobile responsive</div>
-                                <div className="feature-item">✓ Local support</div>
-                              </div>
-                              <div className="preview-card-actions">
-                                <button
-                                  className="btn-preview-demo"
-                                  onClick={() => {
-                                    setExpandedCardId(card.id);
-                                    setCurrentImageIndex(0);
-                                  }}
-                                >
-                                  View Details →
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                  </div>
-                  <div className="preview-indicators">
-                    {homepageData.cards
-                      .filter(card => selectedIndustry === 'all' || (card.industry || 'General') === selectedIndustry)
-                      .map((card, index) => (
-                        <button
-                          key={`indicator-${card.id}`}
-                          className={`indicator ${index === carouselIndex % homepageData.cards.length ? 'active' : ''}`}
-                          onClick={() => setCarouselIndex(index)}
-                          aria-label={`View ${card.title}`}
-                        />
-                      ))}
-                  </div>
-                </div>
-              </div>
-        </div>
+    <div>
+      {/* Hero Section */}
+      <section 
+        className="hero" 
+        style={{
+          background: homepageData.backgrounds[0]?.imageData || 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        }}
+      >
+        <h1>GOSH Solutions</h1>
+        <p>Digital business systems built for Africa</p>
       </section>
 
-      {isDemoFormOpen && (
-        <div className="demo-form-modal" role="dialog" aria-modal="true">
-          <div className="demo-form-content">
-            <button type="button" className="demo-form-close" onClick={handleCloseDemoForm}>
-              ✕
-            </button>
-            <div className="demo-form-header">
-              <h2>
-                {formType === 'project' 
-                  ? 'Describe Your Project' 
-                  : formType === 'quotation' 
-                  ? 'Request a Quotation' 
-                  : 'Book Your Free Demo'}
-              </h2>
-              <p>
-                {formType === 'quotation'
-                  ? 'Select the solution you need and tell us your requirements.'
-                  : 'Please complete this short form before continuing to WhatsApp.'}
-              </p>
-            </div>
-            <form className="demo-form" onSubmit={formType === 'quotation' ? handleQuotationSubmit : handleDemoFormSubmit}>
-              {formType === 'quotation' ? (
-                <>
-                  <label>
-                    Select Solution
-                    <select
-                      value={quotationForm.selectedCard || ''}
-                      onChange={(e) => setQuotationForm((prev) => ({ ...prev, selectedCard: e.target.value ? Number(e.target.value) : null }))}
-                      required
-                    >
-                      <option value="">-- Choose a solution --</option>
-                      {homepageData.cards.map((card) => (
-                        <option key={card.id} value={card.id}>
-                          {card.title} - {card.subtitle}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <div className="demo-form-row">
-                    <label>
-                      Full Name
-                      <input
-                        value={quotationForm.name}
-                        onChange={(e) => setQuotationForm((prev) => ({ ...prev, name: e.target.value }))}
-                        required
-                      />
-                    </label>
-                    <label>
-                      Email
-                      <input
-                        type="email"
-                        value={quotationForm.email}
-                        onChange={(e) => setQuotationForm((prev) => ({ ...prev, email: e.target.value }))}
-                        required
-                      />
-                    </label>
+      {/* Cards Section */}
+      <section className="cards-section">
+        <h2>Our Solutions</h2>
+        
+        {loading && <p>Loading solutions...</p>}
+        {error && <p className="error">{error}</p>}
+        
+        {!loading && homepageData.cards.length > 0 ? (
+          <div className="cards-grid">
+            {homepageData.cards.map((card) => (
+              <div 
+                key={card.id} 
+                className={`card ${expandedCardId === card.id ? 'expanded' : ''}`}
+                onClick={() => setExpandedCardId(expandedCardId === card.id ? null : card.id)}
+              >
+                <div className="card-header">
+                  <span className="card-icon">{card.icon}</span>
+                  {card.badgeText && <span className="card-badge">{card.badgeText}</span>}
+                </div>
+                <h3>{card.title}</h3>
+                <p className="card-subtitle">{card.subtitle}</p>
+                
+                {expandedCardId === card.id && (
+                  <div className="card-expanded">
+                    <p>{card.expandedText}</p>
+                    <div className="card-actions">
+                      <button onClick={() => setFormType('demo')} className="demo-btn">
+                        📅 Request Demo
+                      </button>
+                    </div>
                   </div>
-                  <div className="demo-form-row">
-                    <label>
-                      Phone Number
-                      <input
-                        value={quotationForm.phone}
-                        onChange={(e) => setQuotationForm((prev) => ({ ...prev, phone: e.target.value }))}
-                        required
-                      />
-                    </label>
-                    <label>
-                      Business Name
-                      <input
-                        value={quotationForm.business}
-                        onChange={(e) => setQuotationForm((prev) => ({ ...prev, business: e.target.value }))}
-                        required
-                      />
-                    </label>
-                  </div>
-                  <label>
-                    What features/requirements do you need?
-                    <textarea
-                      value={quotationForm.requirements}
-                      onChange={(e) => setQuotationForm((prev) => ({ ...prev, requirements: e.target.value }))}
-                      rows={4}
-                    />
-                  </label>
-                </>
-              ) : (
-                <>
-                  <div className="demo-form-row">
-                    <label>
-                      Name
-                      <input
-                        value={demoForm.name}
-                        onChange={(e) => setDemoForm((prev) => ({ ...prev, name: e.target.value }))}
-                        required
-                      />
-                    </label>
-                    <label>
-                      Email
-                      <input
-                        type="email"
-                        value={demoForm.email}
-                        onChange={(e) => setDemoForm((prev) => ({ ...prev, email: e.target.value }))}
-                        required
-                      />
-                    </label>
-                  </div>
-                  <div className="demo-form-row">
-                    <label>
-                      Phone
-                      <input
-                        value={demoForm.phone}
-                        onChange={(e) => setDemoForm((prev) => ({ ...prev, phone: e.target.value }))}
-                        required
-                      />
-                    </label>
-                    <label>
-                      Business
-                      <input
-                        value={demoForm.business}
-                        onChange={(e) => setDemoForm((prev) => ({ ...prev, business: e.target.value }))}
-                        required
-                      />
-                    </label>
-                  </div>
-                  <label>
-                    {formType === 'project' ? 'Tell us about your project' : 'What would you like included in the demo?'}
-                    <textarea
-                      value={demoForm.message}
-                      onChange={(e) => setDemoForm((prev) => ({ ...prev, message: e.target.value }))}
-                      rows={4}
-                    />
-                  </label>
-                </>
-              )}
-              <div className="demo-form-actions">
-                <button type="submit" className="btn btn-primary btn-lg">
-                  📝 Submit
-                </button>
-                {formType !== 'quotation' && (
-                  <button type="button" className="btn btn-secondary btn-lg btn-whatsapp" onClick={formType === 'quotation' ? () => {} : handleWhatsAppSubmit}>
-                    💬 WhatsApp
-                  </button>
                 )}
               </div>
+            ))}
+          </div>
+        ) : (
+          !loading && <p>No solutions available</p>
+        )}
+      </section>
+
+      {/* Demo Form Modal */}
+      {isDemoFormOpen && (
+        <div className="modal-overlay" onClick={() => setIsDemoFormOpen(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <h2>Request Demo</h2>
+            <form onSubmit={handleDemoSubmit}>
+              <input 
+                type="text" 
+                placeholder="Name" 
+                value={demoForm.name}
+                onChange={(e) => setDemoForm({...demoForm, name: e.target.value})}
+                required 
+              />
+              <input 
+                type="email" 
+                placeholder="Email" 
+                value={demoForm.email}
+                onChange={(e) => setDemoForm({...demoForm, email: e.target.value})}
+                required 
+              />
+              <input 
+                type="tel" 
+                placeholder="Phone" 
+                value={demoForm.phone}
+                onChange={(e) => setDemoForm({...demoForm, phone: e.target.value})}
+                required 
+              />
+              <textarea 
+                placeholder="Message" 
+                value={demoForm.message}
+                onChange={(e) => setDemoForm({...demoForm, message: e.target.value})}
+              />
+              <button type="submit">Submit</button>
+              <button type="button" onClick={() => setIsDemoFormOpen(false)}>Cancel</button>
             </form>
-            {demoSubmitted && (
-              <div className="demo-whatsapp-actions">
-                <p>Great! Your demo details are ready to send.</p>
-                <a href={whatsappLink} target="_blank" rel="noreferrer" className="btn btn-secondary btn-lg">
-                  Open WhatsApp
-                </a>
-              </div>
-            )}
           </div>
         </div>
       )}
-
-      {/* OUR SYSTEMS SECTION */}
-      <section className="our-systems-section" id="systems">
-        <div className="section-wrapper">
-          <div className="section-header">
-            <h2>Ready-Made Systems You Can Deploy This Week</h2>
-            <p>Click to see live demos of each system</p>
-          </div>
-
-          {/* INDUSTRY FILTERS */}
-          <div className="industry-filters">
-            <button
-              className={`filter-btn ${selectedIndustry === 'all' ? 'active' : ''}`}
-              onClick={() => setSelectedIndustry('all')}
-            >
-              All Industries
-            </button>
-            {industries.map((industry) => (
-              <button
-                key={industry}
-                className={`filter-btn ${selectedIndustry === industry ? 'active' : ''}`}
-                onClick={() => setSelectedIndustry(industry)}
-              >
-                {industry}
-              </button>
-            ))}
-          </div>
-
-          {loading ? (
-            <div className="empty-state loading-state">
-              <p>⏳ Loading your systems...</p>
-            </div>
-          ) : error ? (
-            <div className="empty-state error-state">
-              <p>⚠️ {error}</p>
-            </div>
-          ) : homepageData.cards.length === 0 ? (
-            <div className="empty-state no-cards-state">
-              <p>📋 No cards configured yet. Add systems from the admin dashboard.</p>
-            </div>
-          ) : (
-            <div className="systems-layout">
-              {/* CARDS GRID - LEFT SIDE */}
-              <div className="systems-grid-container">
-                <div className="systems-grid">
-                  {homepageData.cards
-                    .filter(card => selectedIndustry === 'all' || (card.industry || 'General') === selectedIndustry)
-                    .map((card, index) => {
-                    const isRotating = index === carouselIndex;
-                    return (
-                      <article
-                        key={card.id}
-                        className={`system-card ${isRotating ? 'rotating' : ''}`}
-                        style={{ animationDelay: `${index * 0.1}s` }}
-                        onClick={() => {
-                          setExpandedCardId(card.id);
-                          setCurrentImageIndex(0);
-                        }}
-                      >
-                        <div className="card-icon-wrapper">
-                          <span className="card-icon">{card.icon}</span>
-                        </div>
-                        <h3 className="card-title">{card.title}</h3>
-                        <p className="card-description">{card.subtitle}</p>
-                        {card.badgeText && <span className="card-mpesa-badge">{card.badgeText}</span>}
-                        <div className="card-actions">
-                          {card.demoLink ? (
-                            <a href={card.demoLink} className="btn-demo" target="_blank" rel="noreferrer">
-                              Live Demo →
-                            </a>
-                          ) : (
-                            <span className="btn-demo disabled">Coming Soon</span>
-                          )}
-                        </div>
-                      </article>
-                    );
-                  })}
-                </div>
-              </div>
-
-
-            </div>
-          )}
-
-          {expandedCard && (
-            <div className="expanded-card-modal" onClick={() => setExpandedCardId(null)}>
-              <div className="expanded-card-content" onClick={(e) => e.stopPropagation()}>
-                <button className="close-modal-btn" onClick={() => setExpandedCardId(null)}>✕</button>
-                
-                {/* Content Sections */}
-                <div className="expanded-card-body">
-                  <h2 className="expanded-card-title">{expandedCard.title}</h2>
-                  
-                  {expandedCard.badgeText && (
-                    <span className="expanded-card-badge">{expandedCard.badgeText}</span>
-                  )}
-
-                  <div className="expanded-card-section">
-                    <h3>Overview</h3>
-                    <p>{expandedCard.expandedText || expandedCard.subtitle}</p>
-                  </div>
-
-                  <div className="expanded-card-section">
-                    <h3>Key Features</h3>
-                    <ul className="features-list">
-                      <li>✓ Easy to use interface</li>
-                      <li>✓ Real-time reporting</li>
-                      <li>✓ Mobile-friendly design</li>
-                      <li>✓ Multi-user support</li>
-                      <li>✓ Data backup & security</li>
-                      <li>✓ Local support in Malawi</li>
-                    </ul>
-                  </div>
-
-                  <div className="expanded-card-section">
-                    <h3>Information</h3>
-                    <div className="info-grid">
-                      <div className="info-item">
-                        <span className="info-label">Setup Time:</span>
-                        <span className="info-value">1-3 days</span>
-                      </div>
-                      <div className="info-item">
-                        <span className="info-label">Support:</span>
-                        <span className="info-value">24/7 Local</span>
-                      </div>
-                      <div className="info-item">
-                        <span className="info-label">Training:</span>
-                        <span className="info-value">Included</span>
-                      </div>
-                      <div className="info-item">
-                        <span className="info-label">Updates:</span>
-                        <span className="info-value">Free forever</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Action Buttons */}
-                  <div className="expanded-card-actions">
-                    <button
-                      className="btn btn-primary btn-lg"
-                      onClick={() => {
-                        handleOpenDemoForm('card', expandedCard.id);
-                        setExpandedCardId(null);
-                      }}
-                    >
-                      📅 Book Demo
-                    </button>
-                    <button
-                      className="btn btn-primary btn-lg"
-                      onClick={() => {
-                        handleOpenQuotationForm(expandedCard.id);
-                        setExpandedCardId(null);
-                      }}
-                    >
-                      💬 Get Quotation
-                    </button>
-                    <button
-                      className="btn btn-primary btn-lg"
-                      onClick={() => {
-                        handleOpenDemoForm('card', expandedCard.id);
-                        setExpandedCardId(null);
-                      }}
-                    >
-                      ℹ️ More Information
-                    </button>
-                    {expandedCard.demoLink && (
-                      <a href={expandedCard.demoLink} target="_blank" rel="noreferrer" className="btn btn-primary btn-lg">
-                        🔗 Live Demo
-                      </a>
-                    )}
-                  </div>
-
-                  {/* IMAGE GALLERY AT BOTTOM */}
-                  {expandedCard.images.length > 0 && (
-                    <div className="expanded-image-gallery">
-                      <div className="gallery-main">
-                        <img src={expandedCard.images[currentImageIndex]} alt={`${expandedCard.title} ${currentImageIndex + 1}`} />
-                      </div>
-                      {expandedCard.images.length > 1 && (
-                        <div className="gallery-controls">
-                          <button className="gallery-arrow" onClick={handlePrevImage}>❮</button>
-                          <div className="gallery-indicators">
-                            {expandedCard.images.map((_, idx) => (
-                              <div
-                                key={idx}
-                                className={`indicator ${idx === currentImageIndex ? 'active' : ''}`}
-                                onClick={() => setCurrentImageIndex(idx)}
-                              />
-                            ))}
-                          </div>
-                          <button className="gallery-arrow" onClick={handleNextImage}>❯</button>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* WHY GOSH SECTION */}
-      <section className="why-gosh-section" id="why">
-        <div className="section-wrapper">
-          <div className="section-header">
-            <h2>Why Businesses in Malawi Choose Us</h2>
-            <p>Local expertise. Affordable solutions. Real support.</p>
-          </div>
-          <div className="why-grid">
-            <div className="why-card">
-              <div className="why-icon">🏢</div>
-              <h3>Local Support</h3>
-              <p>We're in Lilongwe. Call, we answer. No timezone issues. No waiting for overseas support teams.</p>
-            </div>
-            <div className="why-card">
-              <div className="why-icon">🔒</div>
-              <h3>Own Your Data</h3>
-              <p>Powerful Hosting Archtecture.</p>
-            </div>
-            <div className="why-card">
-              <div className="why-icon">⚙️</div>
-              <h3>Built For You</h3>
-              <p>We customize. Need tobacco auction reports? We add it. Your business, your software.</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* CUSTOM DEVELOPMENT SECTION */}
-      <section className="custom-dev-section" id="custom">
-        <div className="section-wrapper">
-          <h2>Need Something Unique? We Build It.</h2>
-          <p>From school management to SACCO systems. If you can explain it, we can code it.</p>
-          <div className="tech-badges">
-            <span className="tech-badge">PHP</span>
-            <span className="tech-badge">Node.js</span>
-            <span className="tech-badge">Python</span>
-            <span className="tech-badge">PostgreSQL</span>
-            <span className="tech-badge">React</span>
-          </div>
-          <button type="button" className="btn btn-primary" onClick={handleOpenProjectForm}>
-            Describe Your Project
-          </button>
-        </div>
-      </section>
-
-      {/* PORTFOLIO/PROOF SECTION */}
-      <section className="portfolio-section" id="portfolio">
-        <div className="section-wrapper">
-          <div className="section-header">
-            <h2>Systems Powering Businesses Like Yours</h2>
-            <p>Real results from real customers</p>
-          </div>
-          <div className="clients-grid">
-            <div className="client-card">
-              <div className="client-logo">CH</div>
-              <p className="client-result">Cut hotel check-in time by 70%</p>
-              <p className="client-name">Capital Hotel</p>
-            </div>
-            <div className="client-card">
-              <div className="client-logo">PH</div>
-              <p className="client-result">Stock alerts reduced waste by 40%</p>
-              <p className="client-name">Premium Pharmacy</p>
-            </div>
-            <div className="client-card">
-              <div className="client-logo">BC</div>
-              <p className="client-result">POS faster by 3x at peak times</p>
-              <p className="client-name">Black Cat Club</p>
-            </div>
-            <div className="client-card">
-              <div className="client-logo">AB</div>
-              <p className="client-result">Multi-property bookings in one place</p>
-              <p className="client-name">AirBnB Manager</p>
-            </div>
-            <div className="client-card">
-              <div className="client-logo">SC</div>
-              <p className="client-result">Airtelmoney and Mpamba </p>
-              <p className="client-name">Shop Corner</p>
-            </div>
-            <div className="client-card">
-              <div className="client-logo">MC</div>
-              <p className="client-result">Donor reporting in minutes not hours</p>
-              <p className="client-name">Mission Care</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* PROCESS SECTION */}
-      <section className="process-section" id="process">
-        <div className="section-wrapper">
-          <div className="section-header">
-            <h2>How We Work</h2>
-            <p>Simple steps to transform your business</p>
-          </div>
-          <div className="process-steps">
-            <div className="step-card">
-              <div className="step-number">1</div>
-              <h3>Free Demo</h3>
-              <p>See exactly how the system works for your business. 30 minutes, no pressure.</p>
-            </div>
-            <div className="step-card">
-              <div className="step-number">2</div>
-              <h3>We Customize</h3>
-              <p>Add your specific fields, workflows, and reports. Built for YOUR business.</p>
-            </div>
-            <div className="step-card">
-              <div className="step-number">3</div>
-              <h3>Training</h3>
-              <p>Your team learns the system in person or via WhatsApp. We make it simple.</p>
-            </div>
-            <div className="step-card">
-              <div className="step-number">4</div>
-              <h3>Local Support</h3>
-              <p>Ongoing help whenever you need it. Call, WhatsApp, or in-person support.</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* FINAL CTA BANNER */}
-      <section className="final-cta-section">
-        <div className="cta-wrapper">
-          <h2>Ready to stop using paper or Excel? Let's talk.</h2>
-          <p>Get set up this week. Join 30+ local businesses running on GOSH Systems.</p>
-          <div className="cta-buttons">
-            <a href="https://wa.me/265xxxxxxxxx" className="btn btn-white" target="_blank" rel="noreferrer">
-              📱 WhatsApp Us: +265995718815
-            </a>
-            <a href="https://wa.me/265xxxxxxxxx" className="btn btn-outline" target="_blank" rel="noreferrer">
-              Get Quote in 24hrs
-            </a>
-          </div>
-        </div>
-      </section>
-
-      {/* FOOTER */}
-      <footer className="footer-section">
-        <div className="footer-wrapper">
-          <div className="footer-column">
-            <h4>GOSH SOLUTIONS</h4>
-            <p>Malawi business systems</p>
-          </div>
-          <div className="footer-column">
-            <h4>Systems</h4>
-            <ul>
-              <li>Hotel Managements</li>
-              <li>Loan management Systems</li>
-              <li>Pharmacy Systems</li>
-              <li>Bar & Club Management Systems</li>
-              <li>Air BnB Management Systems</li>
-              <li>Online Sales Websites</li>
-            </ul>
-          </div>
-          <div className="footer-column">
-            <h4>Contact</h4>
-            <p>Lilongwe, Area 3</p>
-            <p>+265 995 718 815</p>
-            <p>info@gosh-solutions.com</p>
-          </div>
-          <div className="footer-column">
-            <h4>Follow Us</h4>
-            <div className="social-links">
-              <a href="#" title="Facebook">f</a>
-              <a href="#" title="LinkedIn">in</a>
-              <a href="#" title="WhatsApp">W</a>
-            </div>
-          </div>
-        </div>
-        <div className="footer-bottom">
-          <p>© 2026 GOSH SOLUTIONS. All rights reserved. Built in Malawi, for Malawi.</p>
-        </div>
-      </footer>
     </div>
   );
 }

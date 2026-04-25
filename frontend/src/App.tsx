@@ -7,6 +7,7 @@ import AdminRecordsPage from './pages/AdminRecordsPage';
 import AboutPage from './pages/AboutPage';
 import ContactPage from './pages/ContactPage';
 import SoftwareDetailPage from './pages/SoftwareDetailPage';
+import { awsConfig } from './aws-config';
 
 function App() {
   const isLoggedIn = localStorage.getItem('adminToken') !== null;
@@ -22,7 +23,7 @@ function App() {
       <header className="app-header">
         <div className="header-logo">
           <Link to="/" onClick={handleNavClick} className="header-logo-link">
-            <img src="http://localhost:5001/uploads/log.jpg" alt="GOSH Solutions logo" />
+            <img src={`${awsConfig.apiEndpoint}/uploads/log.jpg`} alt="GOSH Solutions logo" />
             <span className="company-name">GOSH SOLUTIONS</span>
           </Link>
         </div>
@@ -31,8 +32,11 @@ function App() {
           <div className="nav-group nav-group-left">
             <Link to="/" onClick={handleNavClick}>Home</Link>
             <a href="/#systems" onClick={handleNavClick}>Systems</a>
-            <Link to="/about" onClick={handleNavClick}>About</Link>
             <Link to="/contact" onClick={handleNavClick}>Contact</Link>
+          </div>
+
+          <div className="nav-group nav-group-mobile-about">
+            <Link to="/about" onClick={handleNavClick}>About Us</Link>
           </div>
 
           <div className="nav-group nav-group-right">
@@ -60,7 +64,6 @@ function App() {
           <div className="mobile-nav-menu">
             <Link to="/" onClick={() => { handleNavClick(); setServiceDropdownOpen(false); }}>Home</Link>
             <a href="/#systems" onClick={() => { handleNavClick(); setServiceDropdownOpen(false); }}>Systems</a>
-            <Link to="/about" onClick={() => { handleNavClick(); setServiceDropdownOpen(false); }}>About Us</Link>
             <Link to="/contact" onClick={() => { handleNavClick(); setServiceDropdownOpen(false); }}>Contact</Link>
             <Link to="/admin" onClick={() => { handleNavClick(); setServiceDropdownOpen(false); }}>Admin</Link>
             <a
