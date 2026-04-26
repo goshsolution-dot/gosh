@@ -6,7 +6,7 @@ import path from 'path';
 const s3Client = new S3Client({ region: process.env.AWS_REGION || 'us-east-1' });
 
 export class S3Service {
-  private bucket = process.env.UPLOADS_BUCKET_NAME || 'gosh-uploads';
+  private bucket = (process.env.UPLOADS_BUCKET_NAME || 'gosh-file-bucket').trim();
 
   /**
    * Upload a file to S3

@@ -202,9 +202,11 @@ export async function createHomepageCard(data: any) {
   }
 }
 
-export async function deleteHomepageCard(id: number) {
+export async function deleteHomepageCard(id: string) {
   try {
-    await db.HomepageCardOps.delete(`HOMEPAGE_CARD#${id}`);
+    console.log('[API Service] Deleting homepage card with id:', id);
+    const result = await db.HomepageCardOps.delete(id);
+    console.log('[API Service] Card deleted successfully:', result);
     return { id };
   } catch (error) {
     console.error('[API Service] Error deleting homepage card:', error);
@@ -230,9 +232,9 @@ export async function createHomepageBackground(data: any) {
   }
 }
 
-export async function deleteHomepageBackground(id: number) {
+export async function deleteHomepageBackground(id: string) {
   try {
-    await db.HomepageBackgroundOps.delete(`HOMEPAGE_BACKGROUND#${id}`);
+    await db.HomepageBackgroundOps.delete(id);
     return { id };
   } catch (error) {
     console.error('[API Service] Error deleting homepage background:', error);
@@ -293,6 +295,32 @@ export async function getAdminRecords() {
     };
   } catch (error) {
     console.error('[API Service] Error getting admin records:', error);
+    throw error;
+  }
+}
+
+// ============================================================================
+// S3 PRESIGNED URLs
+// ============================================================================
+
+import s3Service from './s3Service';
+
+export async function getPresignedUploadUrl(fileName: string, contentType: string, category: string = 'general') {
+  try {
+    // Generate a unique S3 key with category prefix
+    const timestamp = Date.now();
+    const randomStr = Math.random().toString(36).substring(2, 8);
+    const s3Key = `${category}/${timestamp}-${randomStr}-${fileName}`;
+    
+    // Generate presigned URL valid for 1 hour
+    const presignedUrl = await s3Service.generatePresignedUploadUrl(s3Key, contentType, 3600);
+    
+    return {
+      presignedUrl,
+      key: s3Key,
+    };
+  } catch (error) {
+    console.error('[API Service] Error generating presigned URL:', error);
     throw error;
   }
 }

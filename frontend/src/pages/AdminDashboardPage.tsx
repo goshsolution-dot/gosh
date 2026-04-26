@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { awsConfig, getApiUrl, getS3FileUrl } from '../aws-config';
-import { uploadFileToS3Complete } from '../services/s3UploadService';
+import { uploadFileToS3Complete, getPresignedUploadUrl, uploadFileToS3 } from '../services/s3UploadService';
 
 interface OverviewData {
   solutionCount: number;
@@ -23,6 +23,18 @@ type HomepageCard = {
   order: number;
 };
 
+type CardFormData = {
+  title: string;
+  subtitle: string;
+  icon: string;
+  badgeText: string;
+  demoLink: string;
+  expandedText: string;
+  order: number;
+  images: string[]; // S3 URLs
+  uploadingImages: boolean;
+};
+
 function AdminDashboardPage() {
   const [overview, setOverview] = useState<OverviewData | null>(null);
   const [homepageCards, setHomepageCards] = useState<HomepageCard[]>([]);
@@ -37,6 +49,7 @@ function AdminDashboardPage() {
     expandedText: '',
     order: 0,
     images: [] as string[],
+    uploadingImages: false,
   });
   const navigate = useNavigate();
 
@@ -104,11 +117,44 @@ function AdminDashboardPage() {
     const files = event.target.files;
     if (!files?.length) return;
 
-    const images = await Promise.all(Array.from(files).map((file) => readFileAsDataURL(file)));
-    setCardForm((prev) => {
-      const newImages = [...prev.images, ...images];
-      return { ...prev, images: newImages.slice(0, 4) }; // Limit to 4 images
-    });
+    setCardForm((prev) => ({ ...prev, uploadingImages: true }));
+    setStatusMessage('Uploading images to S3...');
+
+    const uploadedUrls: string[] = [];
+    const errors: string[] = [];
+
+    try {
+      for (const file of Array.from(files)) {
+        try {
+          const result = await uploadFileToS3Complete(file, 'homepage-cards');
+          if (result.success && result.url) {
+            uploadedUrls.push(result.url);
+          } else {
+            errors.push(`Failed to upload ${file.name}: ${result.error}`);
+          }
+        } catch (error) {
+          errors.push(`Error uploading ${file.name}: ${String(error)}`);
+        }
+      }
+
+      if (uploadedUrls.length > 0) {
+        setCardForm((prev) => {
+          const newImages = [...prev.images, ...uploadedUrls];
+          return { ...prev, images: newImages.slice(0, 4), uploadingImages: false }; // Limit to 4 images
+        });
+        setStatusMessage(
+          errors.length > 0
+            ? `Uploaded ${uploadedUrls.length} images. Errors: ${errors.join('; ')}`
+            : `Successfully uploaded ${uploadedUrls.length} image(s)`
+        );
+      } else {
+        setStatusMessage(`Failed to upload images: ${errors.join('; ')}`);
+        setCardForm((prev) => ({ ...prev, uploadingImages: false }));
+      }
+    } catch (error) {
+      setStatusMessage(`Image upload failed: ${String(error)}`);
+      setCardForm((prev) => ({ ...prev, uploadingImages: false }));
+    }
   };
 
   const handleCreateCard = async (event: React.FormEvent) => {
@@ -137,13 +183,13 @@ function AdminDashboardPage() {
       const data = await response.json();
       if (response.ok && data.success) {
         setStatusMessage('Homepage card added successfully.');
-        setCardForm({ title: '', subtitle: '', icon: '📦', badgeText: '', demoLink: '', expandedText: '', order: 0, images: [] });
+        setCardForm({ title: '', subtitle: '', icon: '📦', badgeText: '', demoLink: '', expandedText: '', order: 0, images: [], uploadingImages: false });
         loadHomepageContent();
       } else {
         setStatusMessage(data.message || 'Unable to create homepage card.');
       }
-    } catch {
-      setStatusMessage('Unable to create homepage card.');
+    } catch (error) {
+      setStatusMessage(`Error creating card: ${String(error)}`);
     }
   };
 
@@ -160,10 +206,12 @@ function AdminDashboardPage() {
         setStatusMessage('Homepage card deleted.');
         loadHomepageContent();
       } else {
+        console.error('[Delete Card] Error:', data);
         setStatusMessage(data.message || 'Could not delete card.');
       }
-    } catch {
-      setStatusMessage('Could not delete card.');
+    } catch (error) {
+      console.error('[Delete Card] Error:', error);
+      setStatusMessage(`Error deleting card: ${String(error)}`);
     }
   };
 
@@ -315,21 +363,46 @@ function AdminDashboardPage() {
               </div>
             </div>
             <div className="form-group">
-              <label htmlFor="cardImages">Card images</label>
-              <input id="cardImages" type="file" multiple accept="image/*" onChange={handleCardImages} />
+              <label htmlFor="cardImages">Card images (optional - up to 4)</label>
+              <input 
+                id="cardImages" 
+                type="file" 
+                multiple 
+                accept="image/*" 
+                onChange={handleCardImages}
+                disabled={cardForm.uploadingImages}
+              />
+              {cardForm.uploadingImages && <small>Uploading to S3...</small>}
             </div>
             {cardForm.images.length > 0 && (
               <div className="image-preview-grid">
                 {cardForm.images.map((image, index) => (
                   <div key={index} className="image-preview-item">
                     <img src={image} alt={`Card preview ${index + 1}`} />
+                    <button
+                      type="button"
+                      className="remove-image-btn"
+                      onClick={() => setCardForm((prev) => ({
+                        ...prev,
+                        images: prev.images.filter((_, i) => i !== index)
+                      }))}
+                      title="Remove image"
+                    >
+                      ✕
+                    </button>
                   </div>
                 ))}
               </div>
             )}
             <div className="form-actions">
-              <button type="submit">Save card</button>
-              <button type="button" className="secondary-btn" onClick={() => setCardForm({ title: '', subtitle: '', icon: '📦', badgeText: '', demoLink: '', expandedText: '', order: 0, images: [] })}>
+              <button type="submit" disabled={cardForm.uploadingImages}>
+                {cardForm.uploadingImages ? 'Uploading...' : 'Save card'}
+              </button>
+              <button 
+                type="button" 
+                className="secondary-btn" 
+                onClick={() => setCardForm({ title: '', subtitle: '', icon: '📦', badgeText: '', demoLink: '', expandedText: '', order: 0, images: [], uploadingImages: false })}
+              >
                 Reset
               </button>
             </div>

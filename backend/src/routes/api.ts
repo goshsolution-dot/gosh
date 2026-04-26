@@ -22,5 +22,6 @@ router.post('/admin/homepage/cards', authenticateAdmin, asyncHandler(controller.
 router.delete('/admin/homepage/cards/:id', authenticateAdmin, asyncHandler(controller.deleteHomepageCard));
 router.post('/admin/homepage/backgrounds', authenticateAdmin, asyncHandler(controller.postHomepageBackground));
 router.delete('/admin/homepage/backgrounds/:id', authenticateAdmin, asyncHandler(controller.deleteHomepageBackground));
+router.post('/uploads/presigned-url', asyncHandler(controller.getPresignedUploadUrl));
 
 export default router;

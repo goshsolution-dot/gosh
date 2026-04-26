@@ -63,9 +63,16 @@ export async function postHomepageCard(req: Request, res: Response) {
 }
 
 export async function deleteHomepageCard(req: Request, res: Response) {
-  const card = await service.deleteHomepageCard(Number(req.params.id));
-  if (!card) return res.status(404).json({ success: false, message: 'Card not found' });
-  res.json({ success: true, data: card });
+  try {
+    const id = req.params.id;
+    console.log('[Controller] Deleting card:', id);
+    const card = await service.deleteHomepageCard(id);
+    if (!card) return res.status(404).json({ success: false, message: 'Card not found' });
+    res.json({ success: true, data: card });
+  } catch (error) {
+    console.error('[Controller] Delete card error:', error);
+    res.status(500).json({ success: false, message: `Failed to delete card: ${String(error)}` });
+  }
 }
 
 export async function postHomepageBackground(req: Request, res: Response) {
@@ -74,21 +81,45 @@ export async function postHomepageBackground(req: Request, res: Response) {
 }
 
 export async function deleteHomepageBackground(req: Request, res: Response) {
-  const background = await service.deleteHomepageBackground(Number(req.params.id));
+  const background = await service.deleteHomepageBackground(req.params.id);
   if (!background) return res.status(404).json({ success: false, message: 'Background not found' });
   res.json({ success: true, data: background });
 }
 
 export async function adminLogin(req: Request, res: Response) {
   const { email, password } = req.body;
-  const adminEmail = process.env.ADMIN_EMAIL;
-  const adminPassword = process.env.ADMIN_PASSWORD;
+  
+  // Get admin credentials from environment variables
+  const adminEmail = (process.env.ADMIN_EMAIL || '').trim();
+  const adminPassword = (process.env.ADMIN_PASSWORD || '').trim();
+  
+  // Sanitize input
+  const inputEmail = (email || '').trim().toLowerCase();
+  const inputPassword = (password || '').trim();
+  
+  console.log('[AdminLogin] Attempting login with:', {
+    inputEmail,
+    expectedEmail: adminEmail,
+    passwordProvided: !!inputPassword,
+    passwordMatch: inputPassword === adminPassword,
+  });
 
-  if (email !== adminEmail || password !== adminPassword) {
+  // Validate credentials
+  if (!adminEmail || !adminPassword) {
+    console.error('[AdminLogin] ERROR: Admin credentials not configured in environment variables');
+    return res.status(500).json({ 
+      success: false, 
+      message: 'Server configuration error: Admin credentials not set' 
+    });
+  }
+
+  if (inputEmail !== adminEmail.toLowerCase() || inputPassword !== adminPassword) {
+    console.warn('[AdminLogin] Login failed: Invalid credentials');
     return res.status(401).json({ success: false, message: 'Invalid admin credentials' });
   }
 
-  const token = signAdminToken({ email });
+  console.log('[AdminLogin] Login successful for:', inputEmail);
+  const token = signAdminToken({ email: inputEmail });
   res.json({ success: true, token });
 }
 
@@ -100,4 +131,30 @@ export async function getAdminOverview(req: Request, res: Response) {
 export async function getAdminRecords(req: Request, res: Response) {
   const records = await service.getAdminRecords();
   res.json({ success: true, data: records });
+}
+
+export async function getPresignedUploadUrl(req: Request, res: Response) {
+  const { fileName, contentType, category } = req.body;
+
+  if (!fileName || !contentType) {
+    return res.status(400).json({
+      success: false,
+      message: 'Missing required fields: fileName, contentType',
+    });
+  }
+
+  try {
+    const result = await service.getPresignedUploadUrl(fileName, contentType, category || 'general');
+    res.json({
+      success: true,
+      presignedUrl: result.presignedUrl,
+      key: result.key,
+    });
+  } catch (error) {
+    console.error('Error generating presigned URL:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to generate presigned upload URL',
+    });
+  }
 }

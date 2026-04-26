@@ -43,8 +43,17 @@ const TABLE_NAME = process.env.DYNAMODB_TABLE_NAME || 'gosh-dynamodb-table';
  */
 export async function initializeDynamoDBTable() {
   try {
-    await dynamodbClient.send(new DescribeTableCommand({ TableName: TABLE_NAME }));
-    console.log(`[DynamoDB] Table ${TABLE_NAME} already exists`);
+    const describeResult = await dynamodbClient.send(new DescribeTableCommand({ TableName: TABLE_NAME }));
+    
+    // Check if table is ACTIVE
+    if (describeResult.Table?.TableStatus === 'ACTIVE') {
+      console.log(`[DynamoDB] Table ${TABLE_NAME} already exists and is ACTIVE`);
+      return;
+    } else {
+      console.log(`[DynamoDB] Table ${TABLE_NAME} exists but status is ${describeResult.Table?.TableStatus}, waiting...`);
+      await waitForTableActive();
+      return;
+    }
   } catch (error: any) {
     if (error.name === 'ResourceNotFoundException') {
       console.log(`[DynamoDB] Creating table ${TABLE_NAME}...`);
@@ -98,9 +107,9 @@ export async function initializeDynamoDBTable() {
           })
         );
 
-        console.log(`[DynamoDB] Table ${TABLE_NAME} created successfully`);
-        // Wait for table to be active
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        console.log(`[DynamoDB] Table ${TABLE_NAME} created, waiting for ACTIVE status...`);
+        await waitForTableActive();
+        console.log(`[DynamoDB] Table ${TABLE_NAME} is now ACTIVE`);
       } catch (createError) {
         console.error('[DynamoDB] Error creating table:', createError);
         throw createError;
@@ -109,6 +118,31 @@ export async function initializeDynamoDBTable() {
       throw error;
     }
   }
+}
+
+/**
+ * Wait for DynamoDB table to be ACTIVE
+ */
+async function waitForTableActive(maxAttempts = 60, delayMs = 1000) {
+  for (let i = 0; i < maxAttempts; i++) {
+    try {
+      const result = await dynamodbClient.send(new DescribeTableCommand({ TableName: TABLE_NAME }));
+      
+      if (result.Table?.TableStatus === 'ACTIVE') {
+        console.log(`[DynamoDB] Table is ACTIVE (attempt ${i + 1}/${maxAttempts})`);
+        return;
+      }
+      
+      console.log(`[DynamoDB] Table status: ${result.Table?.TableStatus} (attempt ${i + 1}/${maxAttempts})`);
+    } catch (error) {
+      console.log(`[DynamoDB] Waiting for table to be created (attempt ${i + 1}/${maxAttempts})`);
+    }
+    
+    // Wait before retrying
+    await new Promise(resolve => setTimeout(resolve, delayMs));
+  }
+  
+  throw new Error(`[DynamoDB] Table ${TABLE_NAME} did not become ACTIVE within ${maxAttempts * delayMs / 1000} seconds`);
 }
 
 /**
@@ -555,13 +589,40 @@ export const HomepageCardOps = {
   },
 
   async delete(id: string) {
-    await docClient.send(
-      new DeleteCommand({
+    // First, query the item to get its timestamp
+    const queryResult = await docClient.send(
+      new QueryCommand({
         TableName: TABLE_NAME,
-        Key: { entityId: `HOMEPAGE_CARD#${id}`, timestamp: 0 },
+        IndexName: 'id-index',
+        KeyConditionExpression: 'id = :id AND #type = :type',
+        ExpressionAttributeNames: { '#type': 'type' },
+        ExpressionAttributeValues: {
+          ':id': id,
+          ':type': 'HOMEPAGE_CARD',
+        },
       })
     );
 
+    if (!queryResult.Items || queryResult.Items.length === 0) {
+      console.error('[HomepageCardOps] Delete: Card not found with id:', id);
+      return null;
+    }
+
+    const item = queryResult.Items[0] as any;
+    const entityId = item.entityId;
+    const timestamp = item.timestamp;
+
+    console.log('[HomepageCardOps] Deleting card:', { id, entityId, timestamp });
+
+    // Now delete using the correct timestamp
+    await docClient.send(
+      new DeleteCommand({
+        TableName: TABLE_NAME,
+        Key: { entityId, timestamp },
+      })
+    );
+
+    console.log('[HomepageCardOps] Card deleted successfully:', id);
     return { id };
   },
 };
@@ -620,13 +681,40 @@ export const HomepageBackgroundOps = {
   },
 
   async delete(id: string) {
-    await docClient.send(
-      new DeleteCommand({
+    // First, query the item to get its timestamp
+    const queryResult = await docClient.send(
+      new QueryCommand({
         TableName: TABLE_NAME,
-        Key: { entityId: `HOMEPAGE_BG#${id}`, timestamp: 0 },
+        IndexName: 'id-index',
+        KeyConditionExpression: 'id = :id AND #type = :type',
+        ExpressionAttributeNames: { '#type': 'type' },
+        ExpressionAttributeValues: {
+          ':id': id,
+          ':type': 'HOMEPAGE_BG',
+        },
       })
     );
 
+    if (!queryResult.Items || queryResult.Items.length === 0) {
+      console.error('[HomepageBackgroundOps] Delete: Background not found with id:', id);
+      return null;
+    }
+
+    const item = queryResult.Items[0] as any;
+    const entityId = item.entityId;
+    const timestamp = item.timestamp;
+
+    console.log('[HomepageBackgroundOps] Deleting background:', { id, entityId, timestamp });
+
+    // Now delete using the correct timestamp
+    await docClient.send(
+      new DeleteCommand({
+        TableName: TABLE_NAME,
+        Key: { entityId, timestamp },
+      })
+    );
+
+    console.log('[HomepageBackgroundOps] Background deleted successfully:', id);
     return { id };
   },
 };

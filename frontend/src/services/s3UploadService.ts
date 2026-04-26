@@ -37,20 +37,23 @@ export async function getPresignedUploadUrl(
     );
 
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error('[S3] Presigned URL error response:', errorText);
       return {
         success: false,
-        error: `HTTP ${response.status}: ${response.statusText}`,
+        error: `HTTP ${response.status}: ${response.statusText} - ${errorText}`,
       };
     }
 
     const data = await response.json();
+    console.log('[S3] Got presigned URL for:', fileName);
     return {
       success: true,
       url: data.presignedUrl,
       message: data.key, // Return the S3 key
     };
   } catch (error) {
-    console.error('Failed to get presigned URL:', error);
+    console.error('[S3] Failed to get presigned URL:', error);
     return {
       success: false,
       error: String(error),
@@ -66,6 +69,7 @@ export async function uploadFileToS3(
   presignedUrl: string
 ): Promise<UploadResponse> {
   try {
+    console.log('[S3] Starting upload for:', file.name, 'Size:', file.size, 'Type:', file.type);
     const response = await fetch(presignedUrl, {
       method: 'PUT',
       body: file,
@@ -75,18 +79,21 @@ export async function uploadFileToS3(
     });
 
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error('[S3] Upload failed:', response.statusText, errorText);
       return {
         success: false,
-        error: `Upload failed: ${response.statusText}`,
+        error: `Upload failed: ${response.statusText} (${response.status})`,
       };
     }
 
+    console.log('[S3] Successfully uploaded:', file.name);
     return {
       success: true,
       message: 'File uploaded successfully',
     };
   } catch (error) {
-    console.error('Failed to upload file to S3:', error);
+    console.error('[S3] Failed to upload file to S3:', error);
     return {
       success: false,
       error: String(error),
@@ -102,6 +109,7 @@ export async function uploadFileToS3Complete(
   category: string = 'general'
 ): Promise<UploadResponse> {
   try {
+    console.log('[S3] Starting complete upload flow for:', file.name);
     // Step 1: Get presigned URL
     const presignedResponse = await getPresignedUploadUrl(
       file.name,
@@ -110,6 +118,7 @@ export async function uploadFileToS3Complete(
     );
 
     if (!presignedResponse.success || !presignedResponse.url) {
+      console.error('[S3] Failed to get presigned URL:', presignedResponse.error);
       return {
         success: false,
         error: presignedResponse.error || 'Failed to get presigned URL',
@@ -120,17 +129,20 @@ export async function uploadFileToS3Complete(
     const uploadResponse = await uploadFileToS3(file, presignedResponse.url);
 
     if (!uploadResponse.success) {
+      console.error('[S3] Upload to S3 failed:', uploadResponse.error);
       return uploadResponse;
     }
 
-    // Step 3: Return the S3 key (presignedResponse.message contains the key)
+    // Step 3: Return the S3 URL (key is in presignedResponse.message)
+    const s3Url = `https://${awsConfig.uploadsBucket}.s3.${awsConfig.awsRegion}.amazonaws.com/${presignedResponse.message}`;
+    console.log('[S3] Upload complete. URL:', s3Url);
     return {
       success: true,
-      url: `https://${awsConfig.uploadsBucket}.s3.${awsConfig.awsRegion}.amazonaws.com/${presignedResponse.message}`,
+      url: s3Url,
       message: presignedResponse.message, // Return the S3 key
     };
   } catch (error) {
-    console.error('File upload failed:', error);
+    console.error('[S3] Complete upload flow failed:', error);
     return {
       success: false,
       error: String(error),

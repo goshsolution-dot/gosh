@@ -57,17 +57,17 @@ function ContactPage() {
               <div className="info-card">
                 <div className="info-icon">📍</div>
                 <h3>Office</h3>
-                <p>123 Tech Avenue<br />Silicon Valley, CA 94025<br />United States</p>
+                <p>Plot No/45<br />Malangalanga<br />Lilongwe Malawi</p>
               </div>
               <div className="info-card">
                 <div className="info-icon">📞</div>
                 <h3>Phone</h3>
-                <p>+1 (555) 123-4567<br />+1 (555) 987-6543<br />Mon - Fri, 9AM - 6PM EST</p>
+                <p>+265 (0) 995-718-815<br />+265 (0) 884-481-844<br />Mon - Fri, 9AM - 6PM EST</p>
               </div>
               <div className="info-card">
                 <div className="info-icon">✉️</div>
                 <h3>Email</h3>
-                <p>support@goshsolutions.com<br />sales@goshsolutions.com<br />info@goshsolutions.com</p>
+                <p>sales@goshsolutions.com</p>
               </div>
               <div className="info-card">
                 <div className="info-icon">🌐</div>

@@ -12,8 +12,27 @@ const app = express();
 
 // Middleware
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'https://example.com',
+  origin: (origin, callback) => {
+    // Allow all origins in development, restrict in production
+    const allowedOrigins = [
+      process.env.FRONTEND_URL,
+      'http://localhost:5173',
+      'http://localhost:3000',
+      'http://localhost:5001',
+    ].filter(Boolean);
+
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else if (process.env.NODE_ENV !== 'production') {
+      // Allow all origins in development
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 app.use(express.json({ limit: '15mb' }));
 app.use(express.urlencoded({ extended: true, limit: '15mb' }));
@@ -37,6 +56,12 @@ async function initializeDatabase() {
 
 // Database initialization middleware - must come BEFORE routes
 app.use(async (req, res, next) => {
+  console.log('[Express] Incoming request:', {
+    method: req.method,
+    path: req.path,
+    originalUrl: req.originalUrl,
+    baseUrl: req.baseUrl,
+  });
   try {
     await initializeDatabase();
     next();
