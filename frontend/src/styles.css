@@ -20,7 +20,7 @@ body {
 }
 
 main {
-  min-height: calc(100vh - 60px);
+  min-height: 0;
 }
 
 .app-header {
@@ -35,6 +35,7 @@ main {
   position: sticky;
   top: 0;
   z-index: 1000;
+  min-height: auto;
 }
 
 .header-logo-link {
@@ -139,65 +140,62 @@ main {
 .mobile-nav-menu {
   display: none !important;
   position: fixed;
-  top: 100%;
+  top: 64px; /* height of header, adjust if needed */
   left: 0;
   right: 0;
-  width: 100%;
-  z-index: 999;
+  width: 100vw;
+  background: linear-gradient(135deg, #0f172a 0%, #1a2d5c 100%);
+  border-top: 2px solid #25D366;
+  z-index: 2000;
 }
 
 .mobile-nav-menu.open {
   display: flex !important;
-  position: fixed;
-  top: 100%;
-  left: 0;
-  right: 0;
-  width: 100%;
-  background: linear-gradient(135deg, #0f172a 0%, #1a2d5c 100%);
-  border-top: 2px solid #25D366;
-  margin-top: 0;
-  padding: 1rem;
   flex-direction: column;
   gap: 0.75rem;
+  padding: 1rem;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-  z-index: 1001;
   animation: slideInDown 0.3s ease-out;
+  max-height: calc(100vh - 64px);
+  overflow-y: auto;
 }
 
-.mobile-nav-menu a {
-  color: white;
-  text-decoration: none;
-  padding: 1rem 1.2rem;
+.mobile-nav-menu a,
+.mobile-nav-menu Link {
+  color: white !important;
+  text-decoration: none !important;
+  padding: 1rem 1.2rem !important;
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.08) !important;
   transition: all 0.3s ease;
   font-weight: 500;
-  display: block;
+  display: block !important;
   border-left: 3px solid transparent;
 }
 
-.mobile-nav-menu a:hover {
-  background: rgba(255, 255, 255, 0.15);
+.mobile-nav-menu a:hover,
+.mobile-nav-menu Link:hover {
+  background: rgba(255, 255, 255, 0.15) !important;
   transform: translateX(4px);
   border-left-color: #25D366;
 }
 
 .mobile-nav-menu .admin-nav-link {
-  background: rgba(255, 255, 255, 0.08);
-  border-left: 3px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-left: 3px solid rgba(255, 255, 255, 0.2) !important;
 }
 
 .mobile-whatsapp {
   background: #25D366 !important;
-  border-color: #25D366 !important;
   color: white !important;
   font-weight: 700 !important;
   border-left: none !important;
+  padding: 1rem 1.2rem !important;
+  border-radius: 8px;
 }
 
 .mobile-whatsapp:hover {
   background: #1f8d52 !important;
-  border-color: #1f8d52 !important;
 }
 
 .header-logo-link img {
