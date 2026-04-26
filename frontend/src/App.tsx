@@ -12,10 +12,10 @@ import SoftwareDetailPage from './pages/SoftwareDetailPage';
 function App() {
   const isLoggedIn = localStorage.getItem('adminToken') !== null;
   const navigate = useNavigate();
-  const [serviceDropdownOpen, setServiceDropdownOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleNavClick = () => {
-    setServiceDropdownOpen(false);
+    setMobileMenuOpen(false);
   };
 
   return (
@@ -29,6 +29,7 @@ function App() {
         </div>
 
         <nav className="header-nav">
+          {/* Desktop Navigation */}
           <div className="nav-group nav-group-left">
             <Link to="/" onClick={handleNavClick}>Home</Link>
             <a href="/#systems" onClick={handleNavClick}>Systems</a>
@@ -46,28 +47,33 @@ function App() {
               WhatsApp
             </a>
             <Link to="/admin" onClick={handleNavClick} className="admin-nav-link">Admin</Link>
-            <button
-              className="nav-menu-toggle"
-              onClick={() => setServiceDropdownOpen(!serviceDropdownOpen)}
-              type="button"
-              aria-label="Open mobile menu"
-            >
-              ☰
-            </button>
           </div>
         </nav>
 
-        {serviceDropdownOpen && (
+        {/* Mobile Menu Toggle */}
+        <button
+          className="nav-menu-toggle"
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          type="button"
+          aria-label="Open mobile menu"
+        >
+          ☰
+        </button>
+
+        {/* Mobile Dropdown Menu */}
+        {mobileMenuOpen && (
           <div className="mobile-nav-menu">
-            <Link to="/" onClick={() => { handleNavClick(); setServiceDropdownOpen(false); }}>Home</Link>
-            <a href="/#systems" onClick={() => { handleNavClick(); setServiceDropdownOpen(false); }}>Systems</a>
-            <Link to="/about" onClick={() => { handleNavClick(); setServiceDropdownOpen(false); }}>About Us</Link>
-            <Link to="/contact" onClick={() => { handleNavClick(); setServiceDropdownOpen(false); }}>Contact</Link>
+            <Link to="/" onClick={handleNavClick}>Home</Link>
+            <a href="/#systems" onClick={handleNavClick}>Systems</a>
+            <Link to="/about" onClick={handleNavClick}>About</Link>
+            <Link to="/contact" onClick={handleNavClick}>Contact</Link>
+            <Link to="/admin" onClick={handleNavClick} className="admin-nav-link">Admin</Link>
             <a
+              className="mobile-whatsapp"
               href="https://wa.me/265xxxxxxxxx"
               target="_blank"
               rel="noreferrer"
-              onClick={() => setServiceDropdownOpen(false)}
+              onClick={() => setMobileMenuOpen(false)}
             >
               WhatsApp
             </a>
