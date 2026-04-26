@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { awsConfig } from '../aws-config';
+import { getApiUrl } from '../aws-config';
 
 interface ContactFormData {
   name: string;
@@ -24,7 +24,7 @@ function ContactPage() {
     setSubmitStatus('Sending...');
 
     try {
-      const response = await fetch(`${awsConfig.apiEndpoint}/api/contact`, {
+      const response = await fetch(getApiUrl('/api/contact'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),

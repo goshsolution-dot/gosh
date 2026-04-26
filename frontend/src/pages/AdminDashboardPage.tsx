@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { awsConfig } from '../aws-config';
+import { awsConfig, getApiUrl, getS3FileUrl } from '../aws-config';
+import { uploadFileToS3Complete } from '../services/s3UploadService';
 
 interface OverviewData {
   solutionCount: number;
@@ -22,17 +23,9 @@ type HomepageCard = {
   order: number;
 };
 
-type HomepageBackground = {
-  id: number;
-  title: string;
-  imageData: string;
-  order: number;
-};
-
 function AdminDashboardPage() {
   const [overview, setOverview] = useState<OverviewData | null>(null);
   const [homepageCards, setHomepageCards] = useState<HomepageCard[]>([]);
-  const [backgrounds, setBackgrounds] = useState<HomepageBackground[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusMessage, setStatusMessage] = useState('');
   const [cardForm, setCardForm] = useState({
@@ -44,11 +37,6 @@ function AdminDashboardPage() {
     expandedText: '',
     order: 0,
     images: [] as string[],
-  });
-  const [backgroundForm, setBackgroundForm] = useState({
-    title: '',
-    imageData: '',
-    order: 0,
   });
   const navigate = useNavigate();
 
@@ -63,8 +51,8 @@ function AdminDashboardPage() {
     async function loadDashboard() {
       try {
         const [overviewRes, homepageRes] = await Promise.all([
-          fetch(`${awsConfig.apiEndpoint}/api/admin/overview`, { headers: { Authorization: `Bearer ${token}` } }),
-          fetch(`${awsConfig.apiEndpoint}/api/homepage`),
+          fetch(getApiUrl('/api/admin/overview'), { headers: { Authorization: `Bearer ${token}` } }),
+          fetch(getApiUrl('/api/homepage')),
         ]);
 
         if (overviewRes.status === 401) {
@@ -81,7 +69,6 @@ function AdminDashboardPage() {
         const homepageData = await homepageRes.json();
         if (homepageData.success) {
           setHomepageCards(homepageData.data.cards);
-          setBackgrounds(homepageData.data.backgrounds);
         }
       } catch {
         setStatusMessage('Unable to load dashboard content.');
@@ -95,11 +82,10 @@ function AdminDashboardPage() {
 
   const loadHomepageContent = async () => {
     try {
-      const response = await fetch(`${awsConfig.apiEndpoint}/api/homepage`);
+      const response = await fetch(getApiUrl('/api/homepage'));
       const data = await response.json();
       if (data.success) {
         setHomepageCards(data.data.cards);
-        setBackgrounds(data.data.backgrounds);
       }
     } catch {
       setStatusMessage('Unable to refresh homepage content.');
@@ -130,7 +116,7 @@ function AdminDashboardPage() {
     setStatusMessage('Saving new card...');
 
     try {
-      const response = await fetch(`${awsConfig.apiEndpoint}/api/admin/homepage/cards`, {
+      const response = await fetch(getApiUrl('/api/admin/homepage/cards'), {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
@@ -161,42 +147,11 @@ function AdminDashboardPage() {
     }
   };
 
-  const handleCreateBackground = async (event: React.FormEvent) => {
-    event.preventDefault();
-    setStatusMessage('Saving new background image...');
-
-    try {
-      const response = await fetch(`${awsConfig.apiEndpoint}/api/admin/homepage/backgrounds`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          title: backgroundForm.title,
-          imageData: backgroundForm.imageData,
-          order: Number(backgroundForm.order),
-        }),
-      });
-
-      const data = await response.json();
-      if (response.ok && data.success) {
-        setStatusMessage('Background image added successfully.');
-        setBackgroundForm({ title: '', imageData: '', order: 0 });
-        loadHomepageContent();
-      } else {
-        setStatusMessage(data.message || 'Unable to create background image.');
-      }
-    } catch {
-      setStatusMessage('Unable to create background image.');
-    }
-  };
-
   const handleDeleteCard = async (id: number) => {
     if (!window.confirm('Delete this homepage card?')) return;
 
     try {
-      const response = await fetch(`${awsConfig.apiEndpoint}/api/admin/homepage/cards/${id}`, {
+      const response = await fetch(getApiUrl(`/api/admin/homepage/cards/${id}`), {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -209,26 +164,6 @@ function AdminDashboardPage() {
       }
     } catch {
       setStatusMessage('Could not delete card.');
-    }
-  };
-
-  const handleDeleteBackground = async (id: number) => {
-    if (!window.confirm('Delete this background image?')) return;
-
-    try {
-      const response = await fetch(`${awsConfig.apiEndpoint}/api/admin/homepage/backgrounds/${id}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await response.json();
-      if (response.ok && data.success) {
-        setStatusMessage('Background image deleted.');
-        loadHomepageContent();
-      } else {
-        setStatusMessage(data.message || 'Could not delete background.');
-      }
-    } catch {
-      setStatusMessage('Could not delete background.');
     }
   };
 
@@ -401,88 +336,7 @@ function AdminDashboardPage() {
           </form>
         </section>
 
-        <section className="dashboard-panel">
-          <div className="panel-header">
-            <div>
-              <h2>Background visuals</h2>
-              <p>Upload images that appear as moving background assets on the homepage.</p>
-            </div>
-            <span className="panel-badge">{backgrounds.length} assets</span>
-          </div>
 
-          {backgrounds.length === 0 ? (
-            <div className="empty-state">
-              <p>No background visuals configured yet.</p>
-            </div>
-          ) : (
-            <div className="background-grid">
-              {backgrounds.map((background) => (
-                <article key={background.id} className="dashboard-card dashboard-background-card">
-                  <div className="background-thumb">
-                    <img src={background.imageData} alt={background.title} />
-                  </div>
-                  <div>
-                    <h3>{background.title}</h3>
-                    <small>Order {background.order}</small>
-                  </div>
-                  <button className="danger-btn" onClick={() => handleDeleteBackground(background.id)}>
-                    Delete
-                  </button>
-                </article>
-              ))}
-            </div>
-          )}
-
-          <form className="admin-form" onSubmit={handleCreateBackground}>
-            <h3>Add new background image</h3>
-            <div className="form-group">
-              <label htmlFor="backgroundTitle">Title</label>
-              <input
-                id="backgroundTitle"
-                value={backgroundForm.title}
-                onChange={(e) => setBackgroundForm((prev) => ({ ...prev, title: e.target.value }))}
-                required
-              />
-            </div>
-            <div className="form-group">
-              <label htmlFor="backgroundOrder">Display order</label>
-              <input
-                id="backgroundOrder"
-                type="number"
-                value={backgroundForm.order}
-                onChange={(e) => setBackgroundForm((prev) => ({ ...prev, order: Number(e.target.value) }))}
-              />
-            </div>
-            <div className="form-group">
-              <label htmlFor="backgroundFile">Image file</label>
-              <input
-                id="backgroundFile"
-                type="file"
-                accept="image/*"
-                onChange={async (event) => {
-                  const file = event.target.files?.[0];
-                  if (!file) return;
-                  const imageData = await readFileAsDataURL(file);
-                  setBackgroundForm((prev) => ({ ...prev, imageData }));
-                }}
-                required
-              />
-            </div>
-            {backgroundForm.imageData && (
-              <div className="image-preview-grid">
-                <div className="image-preview-item">
-                  <img src={backgroundForm.imageData} alt="Background preview" />
-                </div>
-              </div>
-            )}
-            <div className="form-actions">
-              <button type="submit">Save background</button>
-              <button type="button" className="secondary-btn" onClick={() => setBackgroundForm({ title: '', imageData: '', order: 0 })}>
-                Reset
-              </button>
-            </div>
-          </form>
-        </section>
       </div>
     </div>
   );

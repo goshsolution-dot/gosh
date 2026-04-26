@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
-import { awsConfig } from '../aws-config';
+import { getApiUrl } from '../aws-config';
 
 function AdminPage() {
   const [overview, setOverview] = useState<any>(null);
 
   useEffect(() => {
-    fetch(`${awsConfig.apiEndpoint}/api/admin/overview`, {
+    fetch(getApiUrl('/api/admin/overview'), {
       headers: {
         Authorization: 'Bearer ',
       },

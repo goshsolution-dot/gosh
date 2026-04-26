@@ -3,7 +3,7 @@
  * Handles file uploads to S3 with presigned URLs
  */
 
-import { awsConfig } from './aws-config';
+import { awsConfig, getApiUrl } from '../aws-config';
 
 interface UploadResponse {
   success: boolean;
@@ -22,7 +22,7 @@ export async function getPresignedUploadUrl(
 ): Promise<UploadResponse> {
   try {
     const response = await fetch(
-      `${awsConfig.apiEndpoint}/uploads/presigned-url`,
+      getApiUrl('/api/uploads/presigned-url'),
       {
         method: 'POST',
         headers: {
@@ -123,12 +123,11 @@ export async function uploadFileToS3Complete(
       return uploadResponse;
     }
 
-    // Step 3: Return the S3 file URL
-    const fileUrl = `${awsConfig.uploadsBucket}/${presignedResponse.message}`;
+    // Step 3: Return the S3 key (presignedResponse.message contains the key)
     return {
       success: true,
-      url: fileUrl,
-      message: 'File uploaded successfully',
+      url: `https://${awsConfig.uploadsBucket}.s3.${awsConfig.awsRegion}.amazonaws.com/${presignedResponse.message}`,
+      message: presignedResponse.message, // Return the S3 key
     };
   } catch (error) {
     console.error('File upload failed:', error);

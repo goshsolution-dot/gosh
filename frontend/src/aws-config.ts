@@ -5,19 +5,19 @@
 
 export const awsConfig = {
   // S3 bucket for frontend assets
-  s3Bucket: process.env.REACT_APP_FRONTEND_BUCKET_NAME || 'gosh-frontend',
+  s3Bucket: import.meta.env.REACT_APP_FRONTEND_BUCKET_NAME || 'gosh-frontend',
   
   // CloudFront distribution domain
-  cloudFrontDomain: process.env.REACT_APP_CLOUDFRONT_DOMAIN || null,
+  cloudFrontDomain: import.meta.env.REACT_APP_CLOUDFRONT_DOMAIN || null,
   
   // API Gateway endpoint for backend Lambda
-  apiEndpoint: process.env.REACT_APP_API_ENDPOINT || 'https://yoe7524zbi.execute-api.us-east-1.amazonaws.com',
+  apiEndpoint: import.meta.env.REACT_APP_API_ENDPOINT || 'https://yoe7524zbi.execute-api.us-east-1.amazonaws.com',
   
   // S3 uploads bucket for direct uploads
-  uploadsBucket: process.env.REACT_APP_UPLOADS_BUCKET_NAME || 'gosh-uploads',
+  uploadsBucket: import.meta.env.REACT_APP_UPLOADS_BUCKET_NAME || 'gosh-file-bucket',
   
   // AWS region
-  awsRegion: process.env.REACT_APP_AWS_REGION || 'us-east-1',
+  awsRegion: import.meta.env.REACT_APP_AWS_REGION || 'us-east-1',
 };
 
 /**
@@ -29,10 +29,18 @@ export function getApiUrl(path: string): string {
 
 /**
  * Get S3 file URL (from uploads bucket)
+ * Prefers CloudFront if configured, otherwise uses direct S3 URL
  */
 export function getS3FileUrl(key: string): string {
-  if (awsConfig.cloudFrontDomain) {
+  // Validate CloudFront domain is not a placeholder
+  const isValidCloudFront = awsConfig.cloudFrontDomain && 
+    !awsConfig.cloudFrontDomain.includes('d12345') && 
+    awsConfig.cloudFrontDomain.length > 0;
+  
+  if (isValidCloudFront) {
     return `https://${awsConfig.cloudFrontDomain}/${key}`;
   }
+  
+  // Fall back to direct S3 URL
   return `https://${awsConfig.uploadsBucket}.s3.${awsConfig.awsRegion}.amazonaws.com/${key}`;
 }

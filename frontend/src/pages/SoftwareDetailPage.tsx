@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { awsConfig } from '../aws-config';
+import { getApiUrl } from '../aws-config';
 
 interface Solution {
   id: number;
@@ -29,7 +29,7 @@ function SoftwareDetailPage() {
 
   useEffect(() => {
     if (id) {
-      fetch(`${awsConfig.apiEndpoint}/api/solutions`)
+      fetch(getApiUrl('/api/solutions'))
         .then(res => res.json())
         .then(data => {
           const found = data.data.find((s: Solution) => s.id === parseInt(id));

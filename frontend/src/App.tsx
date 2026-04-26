@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Route, Routes, Link, Navigate, useNavigate } from 'react-router-dom';
+import { getS3FileUrl } from './aws-config';
 import HomePage from './pages/HomePage';
 import AdminLoginPage from './pages/AdminLoginPage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
@@ -7,7 +8,6 @@ import AdminRecordsPage from './pages/AdminRecordsPage';
 import AboutPage from './pages/AboutPage';
 import ContactPage from './pages/ContactPage';
 import SoftwareDetailPage from './pages/SoftwareDetailPage';
-import { awsConfig } from './aws-config';
 
 function App() {
   const isLoggedIn = localStorage.getItem('adminToken') !== null;
@@ -23,7 +23,7 @@ function App() {
       <header className="app-header">
         <div className="header-logo">
           <Link to="/" onClick={handleNavClick} className="header-logo-link">
-            <img src={`${awsConfig.apiEndpoint}/uploads/log.jpg`} alt="GOSH Solutions logo" />
+            <img src={getS3FileUrl('log.jpg')} alt="GOSH Solutions logo" />
             <span className="company-name">GOSH SOLUTIONS</span>
           </Link>
         </div>
@@ -32,11 +32,8 @@ function App() {
           <div className="nav-group nav-group-left">
             <Link to="/" onClick={handleNavClick}>Home</Link>
             <a href="/#systems" onClick={handleNavClick}>Systems</a>
+            <Link to="/about" onClick={handleNavClick}>About</Link>
             <Link to="/contact" onClick={handleNavClick}>Contact</Link>
-          </div>
-
-          <div className="nav-group nav-group-mobile-about">
-            <Link to="/about" onClick={handleNavClick}>About Us</Link>
           </div>
 
           <div className="nav-group nav-group-right">
@@ -64,8 +61,8 @@ function App() {
           <div className="mobile-nav-menu">
             <Link to="/" onClick={() => { handleNavClick(); setServiceDropdownOpen(false); }}>Home</Link>
             <a href="/#systems" onClick={() => { handleNavClick(); setServiceDropdownOpen(false); }}>Systems</a>
+            <Link to="/about" onClick={() => { handleNavClick(); setServiceDropdownOpen(false); }}>About Us</Link>
             <Link to="/contact" onClick={() => { handleNavClick(); setServiceDropdownOpen(false); }}>Contact</Link>
-            <Link to="/admin" onClick={() => { handleNavClick(); setServiceDropdownOpen(false); }}>Admin</Link>
             <a
               href="https://wa.me/265xxxxxxxxx"
               target="_blank"
