@@ -61,24 +61,22 @@ function App() {
         </button>
 
         {/* Mobile Dropdown Menu */}
-        {mobileMenuOpen && (
-          <div className="mobile-nav-menu">
-            <Link to="/" onClick={handleNavClick}>Home</Link>
-            <a href="/#systems" onClick={handleNavClick}>Systems</a>
-            <Link to="/about" onClick={handleNavClick}>About</Link>
-            <Link to="/contact" onClick={handleNavClick}>Contact</Link>
-            <Link to="/admin" onClick={handleNavClick} className="admin-nav-link">Admin</Link>
-            <a
-              className="mobile-whatsapp"
-              href="https://wa.me/265xxxxxxxxx"
-              target="_blank"
-              rel="noreferrer"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              WhatsApp
-            </a>
-          </div>
-        )}
+        <div className={`mobile-nav-menu ${mobileMenuOpen ? 'open' : ''}`}>
+          <Link to="/" onClick={handleNavClick}>Home</Link>
+          <a href="/#systems" onClick={handleNavClick}>Systems</a>
+          <Link to="/about" onClick={handleNavClick}>About</Link>
+          <Link to="/contact" onClick={handleNavClick}>Contact</Link>
+          <Link to="/admin" onClick={handleNavClick} className="admin-nav-link">Admin</Link>
+          <a
+            className="mobile-whatsapp"
+            href="https://wa.me/265xxxxxxxxx"
+            target="_blank"
+            rel="noreferrer"
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            WhatsApp
+          </a>
+        </div>
       </header>
 
       <main>
