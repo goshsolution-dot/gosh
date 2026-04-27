@@ -158,7 +158,7 @@ function HomePage() {
       // Create WhatsApp message
       const cardInfo = demoSource === 'card' && expandedCard ? `\nCard: ${expandedCard.title}` : '';
       const message = `Hello GOSH Solutions, I would like to book a free demo.${cardInfo}\nName: ${demoForm.name}\nEmail: ${demoForm.email}\nPhone: ${demoForm.phone}\nBusiness: ${demoForm.business}\nDetails: ${demoForm.message}`;
-      setWhatsappLink(`https://wa.me/265xxxxxxxxx?text=${encodeURIComponent(message)}`);
+      setWhatsappLink(`https://wa.me/265995718815?text=${encodeURIComponent(message)}`);
       setDemoSubmitted(true);
     } catch (error) {
       console.error('Error submitting demo request:', error);
@@ -194,7 +194,7 @@ function HomePage() {
     // Open WhatsApp
     const cardInfo = demoSource === 'card' && expandedCard ? `\nCard: ${expandedCard.title}` : '';
     const message = `Hello GOSH Solutions, I would like to book a free demo.${cardInfo}\nName: ${demoForm.name}\nEmail: ${demoForm.email}\nPhone: ${demoForm.phone}\nBusiness: ${demoForm.business}\nDetails: ${demoForm.message}`;
-    const whatsappUrl = `https://wa.me/265xxxxxxxxx?text=${encodeURIComponent(message)}`;
+    const whatsappUrl = `https://wa.me/265995718815?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
   };
 
@@ -226,7 +226,14 @@ function HomePage() {
         throw new Error('Failed to submit quotation request');
       }
 
+      // WhatsApp message for quotation
+      const cardTitle = homepageData.cards.find(card => card.id === quotationForm.selectedCard)?.title || '';
+      const message = `Hello GOSH Solutions, I would like a quotation.\nName: ${quotationForm.name}\nEmail: ${quotationForm.email}\nPhone: ${quotationForm.phone}\nBusiness: ${quotationForm.business}\nSolution: ${cardTitle}\nRequirements: ${quotationForm.requirements}`;
+      const whatsappNumber = '265995718815';
+      const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
+
       alert('✓ Quotation request submitted successfully! Our team will review and contact you shortly.');
+      window.open(whatsappUrl, '_blank');
       handleCloseDemoForm();
     } catch (error) {
       console.error('Error submitting quotation request:', error);
@@ -371,8 +378,11 @@ function HomePage() {
                   <label>
                     Select Solution
                     <select
-                      value={quotationForm.selectedCard || ''}
-                      onChange={(e) => setQuotationForm((prev) => ({ ...prev, selectedCard: e.target.value ? Number(e.target.value) : null }))}
+                      value={quotationForm.selectedCard ?? ''}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setQuotationForm((prev) => ({ ...prev, selectedCard: val !== '' ? Number(val) : null }));
+                      }}
                       required
                     >
                       <option value="">-- Choose a solution --</option>
@@ -482,11 +492,9 @@ function HomePage() {
                 <button type="submit" className="btn btn-primary btn-lg">
                   📝 Submit
                 </button>
-                {formType !== 'quotation' && (
-                  <button type="button" className="btn btn-secondary btn-lg btn-whatsapp" onClick={formType === 'quotation' ? () => {} : handleWhatsAppSubmit}>
-                    💬 WhatsApp
-                  </button>
-                )}
+                <button type="button" className="btn btn-secondary btn-lg btn-whatsapp" onClick={formType === 'quotation' ? handleQuotationSubmit : handleWhatsAppSubmit}>
+                  💬 WhatsApp
+                </button>
               </div>
             </form>
             {demoSubmitted && (
@@ -827,10 +835,10 @@ function HomePage() {
           <h2>Ready to stop using paper or Excel? Let's talk.</h2>
           <p>Get set up this week. Join 30+ local businesses running on GOSH Systems.</p>
           <div className="cta-buttons">
-            <a href="https://wa.me/265xxxxxxxxx" className="btn btn-white" target="_blank" rel="noreferrer">
+            <a href="https://wa.me/265995718815" className="btn btn-white" target="_blank" rel="noreferrer">
               📱 WhatsApp Us: +265995718815
             </a>
-            <a href="https://wa.me/265xxxxxxxxx" className="btn btn-outline" target="_blank" rel="noreferrer">
+            <a href="https://wa.me/265995718815" className="btn btn-outline" target="_blank" rel="noreferrer">
               Get Quote in 24hrs
             </a>
           </div>

@@ -141,6 +141,15 @@ function ContactPage() {
               </div>
 
               <button type="submit" className="submit-btn">Send Message</button>
+              <a
+                href={`https://wa.me/265995718815?text=${encodeURIComponent('Hello GOSH Solutions, I would like to contact you. Name: ' + formData.name + ', Email: ' + formData.email + ', Phone: ' + formData.phone + ', Subject: ' + formData.subject + ', Message: ' + formData.message)}`}
+                target="_blank"
+                rel="noreferrer"
+                className="submit-btn whatsapp-btn"
+                style={{ marginLeft: '1rem', background: '#25D366', color: '#fff' }}
+              >
+                WhatsApp
+              </a>
             </form>
             {submitStatus && <p className={`submit-status ${submitStatus.includes('Error') ? 'error' : ''}`}>{submitStatus}</p>}
           </section>

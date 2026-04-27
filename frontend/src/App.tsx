@@ -18,6 +18,11 @@ function App() {
     setMobileMenuOpen(false);
   };
 
+  // WhatsApp number and message
+  const whatsappNumber = '265995718815';
+  const whatsappMsg = encodeURIComponent('Hello GOSH Solutions, I would like to inquire about your services.');
+  const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${whatsappMsg}`;
+
   return (
     <div>
       <header className="app-header">
@@ -40,7 +45,7 @@ function App() {
           <div className="nav-group nav-group-right">
             <a
               className="whatsapp-header-btn"
-              href="https://wa.me/265xxxxxxxxx"
+              href={whatsappUrl}
               target="_blank"
               rel="noreferrer"
             >
@@ -57,11 +62,11 @@ function App() {
           type="button"
           aria-label="Open mobile menu"
         >
-          ☰
+          <span className="hamburger-icon" />
         </button>
 
         {/* Mobile Dropdown Menu */}
-        <div className={`mobile-nav-menu ${mobileMenuOpen ? 'open' : ''}`}>
+        <div className={`mobile-nav-menu ${mobileMenuOpen ? 'open' : ''}`} style={{ display: mobileMenuOpen ? 'flex' : 'none' }}>
           <Link to="/" onClick={handleNavClick}>Home</Link>
           <a href="/#systems" onClick={handleNavClick}>Systems</a>
           <Link to="/about" onClick={handleNavClick}>About</Link>
@@ -69,7 +74,7 @@ function App() {
           <Link to="/admin" onClick={handleNavClick} className="admin-nav-link">Admin</Link>
           <a
             className="mobile-whatsapp"
-            href="https://wa.me/265xxxxxxxxx"
+            href={whatsappUrl}
             target="_blank"
             rel="noreferrer"
             onClick={() => setMobileMenuOpen(false)}

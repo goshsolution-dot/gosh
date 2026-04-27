@@ -19,8 +19,10 @@ body {
   padding: 0;
 }
 
+
 main {
-  min-height: 0;
+  min-height: calc(100vh - 60px);
+  background: #f9fafb;
 }
 
 .app-header {
@@ -35,7 +37,6 @@ main {
   position: sticky;
   top: 0;
   z-index: 1000;
-  min-height: auto;
 }
 
 .header-logo-link {
@@ -60,24 +61,30 @@ main {
   display: flex;
   align-items: center;
   gap: 1rem;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  width: 100%;
 }
 
 .nav-group {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
 }
+
 
 .nav-group-left {
   gap: 0.75rem;
+  flex: 1 1 auto;
+  justify-content: flex-start;
 }
+
 
 .nav-group-right {
   gap: 0.75rem;
   margin-left: auto;
   align-items: center;
+  justify-content: flex-end;
 }
 
 .header-nav a,
@@ -120,16 +127,52 @@ main {
   transform: translateY(-2px);
 }
 
+
 .nav-menu-toggle {
   display: none;
   background: transparent;
   border: 1px solid rgba(255, 255, 255, 0.24);
-  color: white;
+  color: #fff;
   padding: 0.7rem 1rem;
   border-radius: 8px;
   cursor: pointer;
   font-size: 1.3rem;
   transition: all 0.3s ease;
+}
+
+@media (max-width: 900px) {
+  .nav-menu-toggle {
+    display: block;
+  }
+  .header-nav {
+    display: none;
+  }
+}
+
+.hamburger-icon {
+  display: inline-block;
+  width: 28px;
+  height: 3px;
+  background: linear-gradient(90deg, #25D366 0%, #fff 100%);
+  border-radius: 2px;
+  position: relative;
+}
+.hamburger-icon::before,
+.hamburger-icon::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  width: 28px;
+  height: 3px;
+  background: linear-gradient(90deg, #25D366 0%, #fff 100%);
+  border-radius: 2px;
+  transition: all 0.3s;
+}
+.hamburger-icon::before {
+  top: -9px;
+}
+.hamburger-icon::after {
+  top: 9px;
 }
 
 .nav-menu-toggle:hover {
@@ -140,62 +183,65 @@ main {
 .mobile-nav-menu {
   display: none !important;
   position: fixed;
-  top: 64px; /* height of header, adjust if needed */
+  top: 100%;
   left: 0;
   right: 0;
-  width: 100vw;
-  background: linear-gradient(135deg, #0f172a 0%, #1a2d5c 100%);
-  border-top: 2px solid #25D366;
-  z-index: 2000;
+  width: 100%;
+  z-index: 999;
 }
 
 .mobile-nav-menu.open {
   display: flex !important;
+  position: fixed;
+  top: 100%;
+  left: 0;
+  right: 0;
+  width: 100%;
+  background: linear-gradient(135deg, var(--dark) 0%, #1a2d5c 100%);
+  border-top: 2px solid #25D366;
+  margin-top: 0;
+  padding: 1rem;
   flex-direction: column;
   gap: 0.75rem;
-  padding: 1rem;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  z-index: 1001;
   animation: slideInDown 0.3s ease-out;
-  max-height: calc(100vh - 64px);
-  overflow-y: auto;
 }
 
-.mobile-nav-menu a,
-.mobile-nav-menu Link {
-  color: white !important;
-  text-decoration: none !important;
-  padding: 1rem 1.2rem !important;
+.mobile-nav-menu a {
+  color: #fff;
+  text-decoration: none;
+  padding: 1rem 1.2rem;
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.08) !important;
+  background: rgba(255, 255, 255, 0.08);
   transition: all 0.3s ease;
   font-weight: 500;
-  display: block !important;
+  display: block;
   border-left: 3px solid transparent;
 }
 
-.mobile-nav-menu a:hover,
-.mobile-nav-menu Link:hover {
-  background: rgba(255, 255, 255, 0.15) !important;
+.mobile-nav-menu a:hover {
+  background: rgba(255, 255, 255, 0.15);
   transform: translateX(4px);
   border-left-color: #25D366;
 }
 
 .mobile-nav-menu .admin-nav-link {
-  background: rgba(255, 255, 255, 0.08) !important;
-  border-left: 3px solid rgba(255, 255, 255, 0.2) !important;
+  background: rgba(255, 255, 255, 0.08);
+  border-left: 3px solid rgba(255, 255, 255, 0.2);
 }
 
 .mobile-whatsapp {
   background: #25D366 !important;
+  border-color: #25D366 !important;
   color: white !important;
   font-weight: 700 !important;
   border-left: none !important;
-  padding: 1rem 1.2rem !important;
-  border-radius: 8px;
 }
 
 .mobile-whatsapp:hover {
   background: #1f8d52 !important;
+  border-color: #1f8d52 !important;
 }
 
 .header-logo-link img {
@@ -1361,51 +1407,30 @@ button:disabled {
 }
 
 @media (max-width: 768px) {
-  .page-container {
-    padding: 0 1rem;
-  }
-
-  .hero {
-    padding: 3rem 1rem;
-    border-radius: 16px;
-  }
-
-  .hero h1 {
-    font-size: 2rem;
-    font-weight: 700;
-  }
-
-  .hero p {
-    font-size: 1rem;
-  }
-
-  .features-preview {
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
-    margin: 2rem 0;
-  }
-
-  .feature-card {
-    padding: 1.5rem;
-  }
-
-  .feature-icon {
-    font-size: 2.5rem;
-  }
-
   .app-header {
     padding: 0.75rem 1rem;
   }
-
   .header-nav {
     gap: 0.5rem;
+    width: 100%;
   }
-
   .nav-group {
     display: none !important;
   }
-
-  .nav-group.mobile-menu-open {
+  .nav-menu-toggle {
+    display: inline-flex;
+    background: #25D366;
+    border-color: #25D366;
+    color: white;
+    font-weight: 700;
+    font-size: 1.2rem;
+    padding: 0.8rem 1rem;
+  }
+  .nav-menu-toggle:hover {
+    background: #1f8d52;
+    border-color: #1f8d52;
+  }
+  .mobile-nav-menu {
     display: flex !important;
     flex-direction: column;
     position: absolute;
@@ -1420,186 +1445,12 @@ button:disabled {
     border-radius: 0 0 12px 12px;
     z-index: 999;
   }
-
   .admin-nav-link {
     display: none !important;
   }
-
-  .nav-menu-toggle {
-    display: inline-flex;
-    background: #25D366;
-    border-color: #25D366;
-    color: white;
-    font-weight: 700;
-    font-size: 1.2rem;
-    padding: 0.8rem 1rem;
-  }
-
-  .nav-menu-toggle:hover {
-    background: #1f8d52;
-    border-color: #1f8d52;
-  }
-
-  .app-header a {
-    font-size: 1rem;
-  }
-
-  .filters h2,
-  .solutions h2,
-  .additional-actions h2 {
-    font-size: 1.5rem;
-  }
-
-  .industry-list {
-    gap: 0.5rem;
-  }
-
-  .industry-btn {
-    padding: 0.6rem 1.2rem;
-    font-size: 0.9rem;
-  }
-
-  .solution-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .solution-card {
-    padding: 1.5rem;
-  }
-
-  .solution-header {
-    margin-bottom: 1rem;
-  }
-
-  .solution-icon {
-    width: 40px;
-    height: 40px;
-    font-size: 1.8rem;
-  }
-
-  .demo-badge {
-    font-size: 0.7rem;
-    padding: 0.3rem 0.6rem;
-  }
-
-  .solution-actions {
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-
-  .solution-actions button {
-    width: 100%;
-    min-width: unset;
-  }
-
-  .action-buttons {
-    flex-direction: column;
-    gap: 1rem;
-  }
-
-  .action-buttons button {
-    width: 100%;
-    padding: 0.875rem 1.5rem;
-    font-size: 0.95rem;
-  }
-
-  .additional-actions {
-    padding: 2rem 1rem;
-    margin: 2rem 0;
-  }
-
-  .admin-header {
-    flex-direction: column;
-    align-items: flex-start;
-    margin: 1.5rem 0 2rem 0;
-  }
-
-  .admin-actions {
-    width: 100%;
-    flex-direction: column;
-    gap: 0.75rem;
-  }
-
-  .admin-link,
-  .logout-btn {
-    width: 100%;
-    text-align: center;
-  }
-
-  .admin-summary {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1rem;
-  }
-
-  .summary-number {
-    font-size: 2rem;
-  }
-
-  .tabs {
-    flex-wrap: wrap;
-    gap: 0;
-  }
-
-  .tabs button {
-    padding: 0.75rem 1rem;
-    font-size: 0.9rem;
-  }
-
-  .records-content {
-    padding: 1rem;
-    border-radius: 12px;
-  }
-
-  .records-table table {
-    font-size: 0.85rem;
-  }
-
-  .records-table th,
-  .records-table td {
-    padding: 0.75rem 0.5rem;
-  }
-
-  .login-container {
-    margin: 2rem auto;
-    padding: 2rem 1.5rem;
-    border-radius: 16px;
-  }
-
-  .login-container h1 {
-    font-size: 1.5rem;
-    margin-bottom: 2rem;
-  }
-
-  .form-group input,
-  .form-group select,
-  .form-group textarea {
-    padding: 0.75rem;
-    font-size: 16px;
-  }
-
-  .form-group label {
-    font-size: 0.9rem;
-  }
-
-  .modal-content {
-    width: 95%;
-    padding: 2rem 1.5rem;
-    border-radius: 16px;
-  }
-
-  .modal-content h3 {
-    font-size: 1.5rem;
-    margin-bottom: 1.25rem;
-  }
-
-  .form-actions {
-    flex-direction: column;
-    gap: 0.75rem;
-  }
-
-  .form-actions button {
-    padding: 0.75rem 1.5rem;
-    font-size: 0.95rem;
+  main {
+    min-height: calc(100vh - 60px);
+    background: #f9fafb;
   }
 }
 
@@ -4140,7 +3991,7 @@ button:disabled {
   }
 
   .homepage-page {
-    padding-top: 70px; /* Reduced padding for mobile */
+    padding-top: 0; /* FIX: remove gap */
   }
 
   .centered-brand-header {
@@ -4464,3 +4315,4 @@ button:disabled {
     font-size: 1rem;
   }
 }
+
