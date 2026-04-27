@@ -116,6 +116,7 @@ function HomePage() {
       selectedCard: cardId || null,
       requirements: '',
     });
+    console.log('Opening quotation form for cardId:', cardId);
   };
 
   const handleCloseDemoForm = () => {
@@ -133,8 +134,8 @@ function HomePage() {
     try {
       // Submit to backend
       const demoData = {
-        solutionId: demoForm.solutionId || 1, // Default to first solution if not specified
-        requestedDate: new Date().toISOString().split('T')[0], // Today's date
+        solutionId: demoForm.solutionId || 1,
+        requestedDate: new Date().toISOString().split('T')[0],
         customer: {
           name: demoForm.name,
           email: demoForm.email,
@@ -200,6 +201,9 @@ function HomePage() {
 
   const handleQuotationSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    
+    console.log('Submitting quotation with selectedCard:', quotationForm.selectedCard);
+    console.log('All quotation form data:', quotationForm);
 
     try {
       const quotationData = {
@@ -226,8 +230,9 @@ function HomePage() {
         throw new Error('Failed to submit quotation request');
       }
 
-      // WhatsApp message for quotation
-      const cardTitle = homepageData.cards.find(card => card.id === quotationForm.selectedCard)?.title || '';
+      // Find the card title
+      const cardTitle = homepageData.cards.find(card => card.id === quotationForm.selectedCard)?.title || 'General Solution';
+      
       const message = `Hello GOSH Solutions, I would like a quotation.\nName: ${quotationForm.name}\nEmail: ${quotationForm.email}\nPhone: ${quotationForm.phone}\nBusiness: ${quotationForm.business}\nSolution: ${cardTitle}\nRequirements: ${quotationForm.requirements}`;
       const whatsappNumber = '265995718815';
       const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
@@ -284,74 +289,75 @@ function HomePage() {
               <span>✓ Trusted by 30+ businesses in Lilongwe & Blantyre</span>
             </div>
           </div>
-              {/* ALTERNATING CARDS PREVIEW - RIGHT SIDE */}
-              <div className="dashboard-preview-container">
-                <div className="dashboard-preview">
-                  <div className="preview-header">
-                    <h3>✨ Featured Systems</h3>
-                    <p>Rotating showcase of our solutions</p>
-                  </div>
-                  <div className="alternating-cards-container">
-                    {homepageData.cards
-                      .filter(card => selectedIndustry === 'all' || (card.industry || 'General') === selectedIndustry)
-                      .map((card, index) => {
-                        const isActive = index === carouselIndex % homepageData.cards.length;
-                        return (
-                          <div
-                            key={`preview-${card.id}`}
-                            className={`alternating-card ${isActive ? 'active' : ''}`}
-                            style={{
-                              transform: `translateX(${(index - carouselIndex) * 100}%)`,
-                              transition: 'transform 0.5s ease-in-out'
-                            }}
-                          >
-                            <div className="preview-card-content">
-                              <div className="preview-card-icon">
-                                <span>{card.icon}</span>
-                              </div>
-                              <h4 className="preview-card-title">{card.title}</h4>
-                              <p className="preview-card-description">{card.subtitle}</p>
-                              {card.badgeText && (
-                                <span className="preview-card-badge">{card.badgeText}</span>
-                              )}
-                              <div className="preview-card-features">
-                                <div className="feature-item">✓ Real-time updates</div>
-                                <div className="feature-item">✓ Mobile responsive</div>
-                                <div className="feature-item">✓ Local support</div>
-                              </div>
-                              <div className="preview-card-actions">
-                                <button
-                                  className="btn-preview-demo"
-                                  onClick={() => {
-                                    setExpandedCardId(card.id);
-                                    setCurrentImageIndex(0);
-                                  }}
-                                >
-                                  View Details →
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                  </div>
-                  <div className="preview-indicators">
-                    {homepageData.cards
-                      .filter(card => selectedIndustry === 'all' || (card.industry || 'General') === selectedIndustry)
-                      .map((card, index) => (
-                        <button
-                          key={`indicator-${card.id}`}
-                          className={`indicator ${index === carouselIndex % homepageData.cards.length ? 'active' : ''}`}
-                          onClick={() => setCarouselIndex(index)}
-                          aria-label={`View ${card.title}`}
-                        />
-                      ))}
-                  </div>
-                </div>
+          {/* ALTERNATING CARDS PREVIEW - RIGHT SIDE */}
+          <div className="dashboard-preview-container">
+            <div className="dashboard-preview">
+              <div className="preview-header">
+                <h3>✨ Featured Systems</h3>
+                <p>Rotating showcase of our solutions</p>
               </div>
+              <div className="alternating-cards-container">
+                {homepageData.cards
+                  .filter(card => selectedIndustry === 'all' || (card.industry || 'General') === selectedIndustry)
+                  .map((card, index) => {
+                    const isActive = index === carouselIndex % homepageData.cards.length;
+                    return (
+                      <div
+                        key={`preview-${card.id}`}
+                        className={`alternating-card ${isActive ? 'active' : ''}`}
+                        style={{
+                          transform: `translateX(${(index - carouselIndex) * 100}%)`,
+                          transition: 'transform 0.5s ease-in-out'
+                        }}
+                      >
+                        <div className="preview-card-content">
+                          <div className="preview-card-icon">
+                            <span>{card.icon}</span>
+                          </div>
+                          <h4 className="preview-card-title">{card.title}</h4>
+                          <p className="preview-card-description">{card.subtitle}</p>
+                          {card.badgeText && (
+                            <span className="preview-card-badge">{card.badgeText}</span>
+                          )}
+                          <div className="preview-card-features">
+                            <div className="feature-item">✓ Real-time updates</div>
+                            <div className="feature-item">✓ Mobile responsive</div>
+                            <div className="feature-item">✓ Local support</div>
+                          </div>
+                          <div className="preview-card-actions">
+                            <button
+                              className="btn-preview-demo"
+                              onClick={() => {
+                                setExpandedCardId(card.id);
+                                setCurrentImageIndex(0);
+                              }}
+                            >
+                              View Details →
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+              </div>
+              <div className="preview-indicators">
+                {homepageData.cards
+                  .filter(card => selectedIndustry === 'all' || (card.industry || 'General') === selectedIndustry)
+                  .map((card, index) => (
+                    <button
+                      key={`indicator-${card.id}`}
+                      className={`indicator ${index === carouselIndex % homepageData.cards.length ? 'active' : ''}`}
+                      onClick={() => setCarouselIndex(index)}
+                      aria-label={`View ${card.title}`}
+                    />
+                  ))}
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
+      {/* MODAL FORM */}
       {isDemoFormOpen && (
         <div className="demo-form-modal" role="dialog" aria-modal="true">
           <div className="demo-form-content">
@@ -376,57 +382,65 @@ function HomePage() {
               {formType === 'quotation' ? (
                 <>
                   <label>
-                    Select Solution
+                    Select Solution *
                     <select
-                      value={quotationForm.selectedCard ?? ''}
+                      value={quotationForm.selectedCard !== null ? quotationForm.selectedCard.toString() : ''}
                       onChange={(e) => {
                         const val = e.target.value;
-                        setQuotationForm((prev) => ({ ...prev, selectedCard: val !== '' ? Number(val) : null }));
+                        console.log('Selected value:', val);
+                        setQuotationForm((prev) => ({ 
+                          ...prev, 
+                          selectedCard: val !== '' ? Number(val) : null 
+                        }));
                       }}
                       required
                     >
-                      <option value="">-- Choose a solution --</option>
+                      <option value="" disabled>-- Choose a solution --</option>
                       {homepageData.cards.map((card) => (
                         <option key={card.id} value={card.id}>
-                          {card.title} - {card.subtitle}
+                          {card.title}
                         </option>
                       ))}
                     </select>
                   </label>
                   <div className="demo-form-row">
                     <label>
-                      Full Name
+                      Full Name *
                       <input
                         value={quotationForm.name}
                         onChange={(e) => setQuotationForm((prev) => ({ ...prev, name: e.target.value }))}
                         required
+                        placeholder="Enter your full name"
                       />
                     </label>
                     <label>
-                      Email
+                      Email *
                       <input
                         type="email"
                         value={quotationForm.email}
                         onChange={(e) => setQuotationForm((prev) => ({ ...prev, email: e.target.value }))}
                         required
+                        placeholder="your@email.com"
                       />
                     </label>
                   </div>
                   <div className="demo-form-row">
                     <label>
-                      Phone Number
+                      Phone Number *
                       <input
                         value={quotationForm.phone}
                         onChange={(e) => setQuotationForm((prev) => ({ ...prev, phone: e.target.value }))}
                         required
+                        placeholder="+265 999 999 999"
                       />
                     </label>
                     <label>
-                      Business Name
+                      Business Name *
                       <input
                         value={quotationForm.business}
                         onChange={(e) => setQuotationForm((prev) => ({ ...prev, business: e.target.value }))}
                         required
+                        placeholder="Your business name"
                       />
                     </label>
                   </div>
@@ -436,6 +450,7 @@ function HomePage() {
                       value={quotationForm.requirements}
                       onChange={(e) => setQuotationForm((prev) => ({ ...prev, requirements: e.target.value }))}
                       rows={4}
+                      placeholder="Please describe what you need..."
                     />
                   </label>
                 </>
@@ -550,45 +565,42 @@ function HomePage() {
             </div>
           ) : (
             <div className="systems-layout">
-              {/* CARDS GRID - LEFT SIDE */}
               <div className="systems-grid-container">
                 <div className="systems-grid">
                   {homepageData.cards
                     .filter(card => selectedIndustry === 'all' || (card.industry || 'General') === selectedIndustry)
                     .map((card, index) => {
-                    const isRotating = index === carouselIndex;
-                    return (
-                      <article
-                        key={card.id}
-                        className={`system-card ${isRotating ? 'rotating' : ''}`}
-                        style={{ animationDelay: `${index * 0.1}s` }}
-                        onClick={() => {
-                          setExpandedCardId(card.id);
-                          setCurrentImageIndex(0);
-                        }}
-                      >
-                        <div className="card-icon-wrapper">
-                          <span className="card-icon">{card.icon}</span>
-                        </div>
-                        <h3 className="card-title">{card.title}</h3>
-                        <p className="card-description">{card.subtitle}</p>
-                        {card.badgeText && <span className="card-mpesa-badge">{card.badgeText}</span>}
-                        <div className="card-actions">
-                          {card.demoLink ? (
-                            <a href={card.demoLink} className="btn-demo" target="_blank" rel="noreferrer">
-                              Live Demo →
-                            </a>
-                          ) : (
-                            <span className="btn-demo disabled">Coming Soon</span>
-                          )}
-                        </div>
-                      </article>
-                    );
-                  })}
+                      const isRotating = index === carouselIndex;
+                      return (
+                        <article
+                          key={card.id}
+                          className={`system-card ${isRotating ? 'rotating' : ''}`}
+                          style={{ animationDelay: `${index * 0.1}s` }}
+                          onClick={() => {
+                            setExpandedCardId(card.id);
+                            setCurrentImageIndex(0);
+                          }}
+                        >
+                          <div className="card-icon-wrapper">
+                            <span className="card-icon">{card.icon}</span>
+                          </div>
+                          <h3 className="card-title">{card.title}</h3>
+                          <p className="card-description">{card.subtitle}</p>
+                          {card.badgeText && <span className="card-mpesa-badge">{card.badgeText}</span>}
+                          <div className="card-actions">
+                            {card.demoLink ? (
+                              <a href={card.demoLink} className="btn-demo" target="_blank" rel="noreferrer">
+                                Live Demo →
+                              </a>
+                            ) : (
+                              <span className="btn-demo disabled">Coming Soon</span>
+                            )}
+                          </div>
+                        </article>
+                      );
+                    })}
                 </div>
               </div>
-
-
             </div>
           )}
 
@@ -597,7 +609,6 @@ function HomePage() {
               <div className="expanded-card-content" onClick={(e) => e.stopPropagation()}>
                 <button className="close-modal-btn" onClick={() => setExpandedCardId(null)}>✕</button>
                 
-                {/* Content Sections */}
                 <div className="expanded-card-body">
                   <h2 className="expanded-card-title">{expandedCard.title}</h2>
                   
@@ -644,7 +655,6 @@ function HomePage() {
                     </div>
                   </div>
 
-                  {/* Action Buttons */}
                   <div className="expanded-card-actions">
                     <button
                       className="btn btn-primary btn-lg"
@@ -680,7 +690,6 @@ function HomePage() {
                     )}
                   </div>
 
-                  {/* IMAGE GALLERY AT BOTTOM */}
                   {expandedCard.images.length > 0 && (
                     <div className="expanded-image-gallery">
                       <div className="gallery-main">
