@@ -66,12 +66,12 @@ function App() {
         </button>
 
         {/* Mobile Dropdown Menu */}
-        <div className={`mobile-nav-menu ${mobileMenuOpen ? 'open' : ''}`} style={{ display: mobileMenuOpen ? 'flex' : 'none' }}>
-          <Link to="/" onClick={handleNavClick}>Home</Link>
-          <a href="/#systems" onClick={handleNavClick}>Systems</a>
-          <Link to="/about" onClick={handleNavClick}>About</Link>
-          <Link to="/contact" onClick={handleNavClick}>Contact</Link>
-          <Link to="/admin" onClick={handleNavClick} className="admin-nav-link">Admin</Link>
+        <div className={`mobile-nav-menu${mobileMenuOpen ? ' open' : ''}`}>
+          <Link to="/" onClick={() => { setMobileMenuOpen(false); }}>Home</Link>
+          <a href="/#systems" onClick={() => { setMobileMenuOpen(false); }}>Systems</a>
+          <Link to="/about" onClick={() => { setMobileMenuOpen(false); }}>About</Link>
+          <Link to="/contact" onClick={() => { setMobileMenuOpen(false); }}>Contact</Link>
+          <Link to="/admin" onClick={() => { setMobileMenuOpen(false); }} className="admin-nav-link">Admin</Link>
           <a
             className="mobile-whatsapp"
             href={whatsappUrl}
@@ -84,23 +84,27 @@ function App() {
         </div>
       </header>
 
-      <main>
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/about" element={<AboutPage />} />
-          <Route path="/contact" element={<ContactPage />} />
-          <Route path="/software/:id" element={<SoftwareDetailPage />} />
-          <Route path="/admin" element={isLoggedIn ? <Navigate to="/admin/dashboard" /> : <AdminLoginPage />} />
-          <Route path="/admin/dashboard" element={isLoggedIn ? <AdminDashboardPage /> : <Navigate to="/admin" />} />
-          <Route path="/admin/records" element={isLoggedIn ? <AdminRecordsPage /> : <Navigate to="/admin" />} />
-        </Routes>
-      </main>
-
-      <footer className="app-footer">
-        <div className="footer-content">
-          <p>&copy; 2026 GOSH Solutions. All rights reserved. | <Link to="/contact">Contact Us</Link> | <Link to="/about">About Us</Link></p>
-        </div>
-      </footer>
+      {/* Hide main and footer when mobile menu is open */}
+      {!mobileMenuOpen && (
+        <>
+          <main>
+            <Routes>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/about" element={<AboutPage />} />
+              <Route path="/contact" element={<ContactPage />} />
+              <Route path="/software/:id" element={<SoftwareDetailPage />} />
+              <Route path="/admin" element={isLoggedIn ? <Navigate to="/admin/dashboard" /> : <AdminLoginPage />} />
+              <Route path="/admin/dashboard" element={isLoggedIn ? <AdminDashboardPage /> : <Navigate to="/admin" />} />
+              <Route path="/admin/records" element={isLoggedIn ? <AdminRecordsPage /> : <Navigate to="/admin" />} />
+            </Routes>
+          </main>
+          <footer className="app-footer">
+            <div className="footer-content">
+              <p>&copy; 2026 GOSH Solutions. All rights reserved. | <Link to="/contact">Contact Us</Link> | <Link to="/about">About Us</Link></p>
+            </div>
+          </footer>
+        </>
+      )}
     </div>
   );
 }
