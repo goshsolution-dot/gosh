@@ -790,13 +790,13 @@ function HomePage() {
                               handlePrevImage();
                             }}
                             style={{
-                              position: 'absolute',
-                              left: -60,
+                              position: 'fixed',
+                              left: 20,
                               top: '50%',
                               transform: 'translateY(-50%)',
                               fontSize: 32,
                               color: '#fff',
-                              background: 'rgba(255,255,255,0.1)',
+                              background: 'rgba(255,255,255,0.2)',
                               border: 'none',
                               cursor: 'pointer',
                               borderRadius: '50%',
@@ -805,9 +805,17 @@ function HomePage() {
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
-                              zIndex: 2010,
+                              zIndex: 2050,
+                              transition: 'background 0.2s ease',
+                              padding: 0,
                             }}
                             title="Previous image (← arrow key)"
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.background = 'rgba(255,255,255,0.3)';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.background = 'rgba(255,255,255,0.2)';
+                            }}
                           >
                             ❮
                           </button>
@@ -832,13 +840,13 @@ function HomePage() {
                               handleNextImage();
                             }}
                             style={{
-                              position: 'absolute',
-                              right: -60,
+                              position: 'fixed',
+                              right: 20,
                               top: '50%',
                               transform: 'translateY(-50%)',
                               fontSize: 32,
                               color: '#fff',
-                              background: 'rgba(255,255,255,0.1)',
+                              background: 'rgba(255,255,255,0.2)',
                               border: 'none',
                               cursor: 'pointer',
                               borderRadius: '50%',
@@ -847,9 +855,17 @@ function HomePage() {
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
-                              zIndex: 2010,
+                              zIndex: 2050,
+                              transition: 'background 0.2s ease',
+                              padding: 0,
                             }}
                             title="Next image (→ arrow key)"
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.background = 'rgba(255,255,255,0.3)';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.background = 'rgba(255,255,255,0.2)';
+                            }}
                           >
                             ❯
                           </button>
