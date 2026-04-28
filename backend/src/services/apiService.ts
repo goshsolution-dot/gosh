@@ -179,6 +179,16 @@ export async function getQuotationRequests() {
   }
 }
 
+export async function updateQuotationStatus(id: string, status: 'pending' | 'reviewed' | 'quoted' | 'rejected') {
+  try {
+    const quotation = await db.QuotationOps.update(id, status);
+    return quotation;
+  } catch (error) {
+    console.error('[API Service] Error updating quotation status:', error);
+    throw error;
+  }
+}
+
 // ============================================================================
 // HOMEPAGE CARDS
 // ============================================================================

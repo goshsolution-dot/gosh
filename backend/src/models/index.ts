@@ -94,16 +94,24 @@ export interface HomepageBackground {
   updatedAt: string;
 }
 
+
 export interface Quotation {
   id: string;
   type: 'QUOTATION';
-  customerId: string;
-  description: string;
+  customerId?: string;
+  customerName: string;
+  customerEmail: string;
+  customerPhone: string;
+  businessName: string;
+  description?: string;
   requirements: string;
   budget?: number;
+  cardId?: string;
+  requestedDate?: string;
+  status?: string;
   timestamp: number;
   createdAt: string;
-  updatedAt: string;
+  updatedAt?: string;
 }
 
 // ============================================================================

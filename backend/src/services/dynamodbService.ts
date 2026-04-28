@@ -518,6 +518,43 @@ export const QuotationOps = {
 
     return result.Items || [];
   },
+
+  async update(id: string, status: 'pending' | 'reviewed' | 'quoted' | 'rejected') {
+    const entityId = `QUOTATION#${id}`;
+
+    // First, get the quotation to find its timestamp
+    const getResult = await docClient.send(
+      new QueryCommand({
+        TableName: TABLE_NAME,
+        KeyConditionExpression: 'entityId = :entityId',
+        ExpressionAttributeValues: { ':entityId': entityId },
+      })
+    );
+
+    if (!getResult.Items || getResult.Items.length === 0) {
+      throw new Error('Quotation not found');
+    }
+
+    const quotation = getResult.Items[0];
+    const timestamp = quotation.timestamp;
+
+    // Now update the item with both keys
+    const result = await docClient.send(
+      new UpdateCommand({
+        TableName: TABLE_NAME,
+        Key: { entityId, timestamp },
+        UpdateExpression: 'SET #status = :status, updatedAt = :updatedAt',
+        ExpressionAttributeNames: { '#status': 'status' },
+        ExpressionAttributeValues: {
+          ':status': status,
+          ':updatedAt': new Date().toISOString(),
+        },
+        ReturnValues: 'ALL_NEW',
+      })
+    );
+
+    return result.Attributes;
+  },
 };
 
 /**

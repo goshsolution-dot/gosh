@@ -1456,6 +1456,15 @@ button:disabled {
     min-height: calc(100vh - 60px);
     background: #f9fafb;
   }
+
+  /* Reset select dropdown to default browser style on mobile */
+  .form-group select {
+    appearance: auto;
+    background-image: none;
+    background-position: unset;
+    background-size: unset;
+    padding-right: 1rem;
+  }
 }
 
 /* New Homepage Styles */

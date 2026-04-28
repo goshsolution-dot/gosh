@@ -19,6 +19,8 @@ type HomepageData = {
 };
 
 function HomePage() {
+  // Image zoom modal state
+  const [zoomedImage, setZoomedImage] = useState<string | null>(null);
   const [homepageData, setHomepageData] = useState<HomepageData>({ cards: [] });
   const [loading, setLoading] = useState(true);
   const [expandedCardId, setExpandedCardId] = useState<number | null>(null);
@@ -130,7 +132,6 @@ function HomePage() {
 
   const handleDemoFormSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    
     try {
       // Submit to backend
       const demoData = {
@@ -141,6 +142,7 @@ function HomePage() {
           email: demoForm.email,
           phone: demoForm.phone,
         },
+        business: demoForm.business,
         message: demoForm.message,
       };
 
@@ -156,11 +158,9 @@ function HomePage() {
         throw new Error('Failed to submit demo request');
       }
 
-      // Create WhatsApp message
-      const cardInfo = demoSource === 'card' && expandedCard ? `\nCard: ${expandedCard.title}` : '';
-      const message = `Hello GOSH Solutions, I would like to book a free demo.${cardInfo}\nName: ${demoForm.name}\nEmail: ${demoForm.email}\nPhone: ${demoForm.phone}\nBusiness: ${demoForm.business}\nDetails: ${demoForm.message}`;
-      setWhatsappLink(`https://wa.me/265995718815?text=${encodeURIComponent(message)}`);
       setDemoSubmitted(true);
+      handleCloseDemoForm();
+      window.location.href = '/';
     } catch (error) {
       console.error('Error submitting demo request:', error);
       alert('Failed to submit demo request. Please try again.');
@@ -197,23 +197,21 @@ function HomePage() {
     const message = `Hello GOSH Solutions, I would like to book a free demo.${cardInfo}\nName: ${demoForm.name}\nEmail: ${demoForm.email}\nPhone: ${demoForm.phone}\nBusiness: ${demoForm.business}\nDetails: ${demoForm.message}`;
     const whatsappUrl = `https://wa.me/265995718815?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
+    
+    // Close form and redirect to homepage
+    handleCloseDemoForm();
+    window.location.href = '/';
   };
 
   const handleQuotationSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    
-    console.log('Submitting quotation with selectedCard:', quotationForm.selectedCard);
-    console.log('All quotation form data:', quotationForm);
-
     try {
       const quotationData = {
         cardId: quotationForm.selectedCard,
-        customer: {
-          name: quotationForm.name,
-          email: quotationForm.email,
-          phone: quotationForm.phone,
-        },
-        business: quotationForm.business,
+        customerName: quotationForm.name,
+        customerEmail: quotationForm.email,
+        customerPhone: quotationForm.phone,
+        businessName: quotationForm.business,
         requirements: quotationForm.requirements,
         requestedDate: new Date().toISOString().split('T')[0],
       };
@@ -230,20 +228,48 @@ function HomePage() {
         throw new Error('Failed to submit quotation request');
       }
 
-      // Find the card title
-      const cardTitle = homepageData.cards.find(card => card.id === quotationForm.selectedCard)?.title || 'General Solution';
-      
-      const message = `Hello GOSH Solutions, I would like a quotation.\nName: ${quotationForm.name}\nEmail: ${quotationForm.email}\nPhone: ${quotationForm.phone}\nBusiness: ${quotationForm.business}\nSolution: ${cardTitle}\nRequirements: ${quotationForm.requirements}`;
-      const whatsappNumber = '265995718815';
-      const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
-
       alert('✓ Quotation request submitted successfully! Our team will review and contact you shortly.');
-      window.open(whatsappUrl, '_blank');
       handleCloseDemoForm();
+      window.location.href = '/';
     } catch (error) {
       console.error('Error submitting quotation request:', error);
       alert('Failed to submit quotation request. Please try again.');
     }
+  };
+
+  const handleQuotationWhatsAppSubmit = async () => {
+    try {
+      // Silently submit quotation to backend
+      const quotationData = {
+        cardId: quotationForm.selectedCard,
+        customerName: quotationForm.name,
+        customerEmail: quotationForm.email,
+        customerPhone: quotationForm.phone,
+        businessName: quotationForm.business,
+        requirements: quotationForm.requirements,
+        requestedDate: new Date().toISOString().split('T')[0],
+      };
+
+      await fetch(getApiUrl('/api/quotation-requests'), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(quotationData),
+      });
+    } catch (error) {
+      console.error('Error submitting quotation request silently:', error);
+    }
+
+    // Open WhatsApp with quotation details
+    const cardName = expandedCard?.title || 'Our Solutions';
+    const message = `Hello GOSH Solutions, I would like to request a quotation.\n\nSolution: ${cardName}\nName: ${quotationForm.name}\nEmail: ${quotationForm.email}\nPhone: ${quotationForm.phone}\nBusiness: ${quotationForm.business}\n\nRequirements:\n${quotationForm.requirements}`;
+    const whatsappUrl = `https://wa.me/265995718815?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
+    
+    // Close form and redirect to homepage
+    handleCloseDemoForm();
+    window.location.href = '/';
   };
 
   const handleNextImage = () => {
@@ -507,9 +533,16 @@ function HomePage() {
                 <button type="submit" className="btn btn-primary btn-lg">
                   📝 Submit
                 </button>
-                <button type="button" className="btn btn-secondary btn-lg btn-whatsapp" onClick={formType === 'quotation' ? handleQuotationSubmit : handleWhatsAppSubmit}>
-                  💬 WhatsApp
-                </button>
+                {formType === 'quotation' && (
+                  <button type="button" className="btn btn-secondary btn-lg btn-whatsapp" onClick={handleQuotationWhatsAppSubmit}>
+                    💬 WhatsApp
+                  </button>
+                )}
+                {formType !== 'quotation' && (
+                  <button type="button" className="btn btn-secondary btn-lg btn-whatsapp" onClick={handleWhatsAppSubmit}>
+                    💬 WhatsApp
+                  </button>
+                )}
               </div>
             </form>
             {demoSubmitted && (
@@ -593,7 +626,7 @@ function HomePage() {
                                 Live Demo →
                               </a>
                             ) : (
-                              <span className="btn-demo disabled">Coming Soon</span>
+                              <span className="btn-demo disabled">Avalable on Promo</span>
                             )}
                           </div>
                         </article>
@@ -693,7 +726,13 @@ function HomePage() {
                   {expandedCard.images.length > 0 && (
                     <div className="expanded-image-gallery">
                       <div className="gallery-main">
-                        <img src={expandedCard.images[currentImageIndex]} alt={`${expandedCard.title} ${currentImageIndex + 1}`} />
+                        <img
+                          src={expandedCard.images[currentImageIndex]}
+                          alt={`${expandedCard.title} ${currentImageIndex + 1}`}
+                          style={{ cursor: 'zoom-in', maxHeight: '320px', objectFit: 'contain' }}
+                          onClick={() => setZoomedImage(expandedCard.images[currentImageIndex])}
+                          title="Click to expand"
+                        />
                       </div>
                       {expandedCard.images.length > 1 && (
                         <div className="gallery-controls">
@@ -710,6 +749,128 @@ function HomePage() {
                           <button className="gallery-arrow" onClick={handleNextImage}>❯</button>
                         </div>
                       )}
+                    </div>
+                  )}
+
+                  {/* Image Zoom Modal */}
+                  {zoomedImage && (
+                    <div
+                      className="zoom-modal"
+                      style={{
+                        position: 'fixed',
+                        top: 0,
+                        left: 0,
+                        width: '100vw',
+                        height: '100vh',
+                        background: 'rgba(0,0,0,0.85)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        zIndex: 2000,
+                      }}
+                      onClick={() => setZoomedImage(null)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Escape') setZoomedImage(null);
+                        if (e.key === 'ArrowLeft') handlePrevImage();
+                        if (e.key === 'ArrowRight') handleNextImage();
+                      }}
+                    >
+                      <div
+                        style={{
+                          position: 'relative',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        {expandedCard && expandedCard.images.length > 1 && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handlePrevImage();
+                            }}
+                            style={{
+                              position: 'absolute',
+                              left: -60,
+                              top: '50%',
+                              transform: 'translateY(-50%)',
+                              fontSize: 32,
+                              color: '#fff',
+                              background: 'rgba(255,255,255,0.1)',
+                              border: 'none',
+                              cursor: 'pointer',
+                              borderRadius: '50%',
+                              width: 48,
+                              height: 48,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              zIndex: 2010,
+                            }}
+                            title="Previous image (← arrow key)"
+                          >
+                            ❮
+                          </button>
+                        )}
+                        <img
+                          src={zoomedImage}
+                          alt="Zoomed"
+                          style={{
+                            maxWidth: '90vw',
+                            maxHeight: '90vh',
+                            borderRadius: '12px',
+                            boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+                            background: '#fff',
+                            cursor: 'zoom-out',
+                          }}
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                        {expandedCard && expandedCard.images.length > 1 && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleNextImage();
+                            }}
+                            style={{
+                              position: 'absolute',
+                              right: -60,
+                              top: '50%',
+                              transform: 'translateY(-50%)',
+                              fontSize: 32,
+                              color: '#fff',
+                              background: 'rgba(255,255,255,0.1)',
+                              border: 'none',
+                              cursor: 'pointer',
+                              borderRadius: '50%',
+                              width: 48,
+                              height: 48,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              zIndex: 2010,
+                            }}
+                            title="Next image (→ arrow key)"
+                          >
+                            ❯
+                          </button>
+                        )}
+                      </div>
+                      <button
+                        style={{
+                          position: 'fixed',
+                          top: 24,
+                          right: 32,
+                          fontSize: 32,
+                          color: '#fff',
+                          background: 'none',
+                          border: 'none',
+                          cursor: 'pointer',
+                          zIndex: 2100,
+                        }}
+                        onClick={() => setZoomedImage(null)}
+                        title="Close (ESC key)"
+                        aria-label="Close zoom"
+                      >✕</button>
                     </div>
                   )}
                 </div>

@@ -30,12 +30,18 @@ function normalizeEvent(event: any) {
 }
 
 export const handler = async (event: any, context: any) => {
+  console.log('[Lambda] ===== REQUEST RECEIVED FROM CLOUDFRONT =====');
+  console.log('[Lambda] Raw event:', JSON.stringify(event, null, 2));
+  console.log('[Lambda] Headers:', JSON.stringify(event.headers || {}, null, 2));
+  console.log('[Lambda] Origin header:', event.headers?.origin || event.headers?.Origin || 'NOT FOUND');
+  
   const normalizedEvent = normalizeEvent(event);
 
   console.log('[Lambda] Normalized event:', {
     path: normalizedEvent.path,
     httpMethod: normalizedEvent.httpMethod,
     resource: normalizedEvent.resource,
+    headers: normalizedEvent.headers,
   });
 
   if (!cachedServer) {

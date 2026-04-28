@@ -10,39 +10,100 @@ dotenv.config();
 
 const app = express();
 
-// Middleware
+/**
+ * -------------------------
+ * REQUEST LOGGING (KEEPED)
+ * -------------------------
+ */
+app.use((req, res, next) => {
+  console.log('[Express] ===== INCOMING REQUEST =====');
+  console.log('[Express] Method:', req.method);
+  console.log('[Express] Path:', req.path);
+  console.log('[Express] URL:', req.url);
+  console.log('[Express] Origin header:', req.get('origin'));
+  console.log('[Express] All headers:', JSON.stringify(req.headers, null, 2));
+  next();
+});
+
+/**
+ * -------------------------
+ * CORS CONFIGURATION (REQUIRED)
+ * -------------------------
+ */
 app.use(cors({
-  origin: (origin, callback) => {
-    // Allow all origins in development, restrict in production
+  origin: function (origin, callback) {
     const allowedOrigins = [
-      process.env.FRONTEND_URL,
+      'https://d2l1zjbdxeq7mh.cloudfront.net',
       'http://localhost:5173',
       'http://localhost:3000',
       'http://localhost:5001',
+      process.env.FRONTEND_URL,
     ].filter(Boolean);
 
+    console.log('[CORS] Origin:', origin, 'Allowed:', allowedOrigins);
+
     if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else if (process.env.NODE_ENV !== 'production') {
-      // Allow all origins in development
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
     }
   },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization'],
+  exposedHeaders: ['Content-Type'],
+  maxAge: 86400,
 }));
+
+/**
+ * -------------------------
+ * EXPLICIT CORS HEADERS (BACKUP)
+ * -------------------------
+ */
+app.use((req, res, next) => {
+  const origin = req.get('origin');
+  const allowedOrigins = [
+    'https://d2l1zjbdxeq7mh.cloudfront.net',
+    'http://localhost:5173',
+    'http://localhost:3000',
+    'http://localhost:5001',
+    process.env.FRONTEND_URL,
+  ].filter(Boolean);
+
+  if (origin && allowedOrigins.includes(origin)) {
+    res.set('Access-Control-Allow-Origin', origin);
+    res.set('Access-Control-Allow-Credentials', 'true');
+    res.set('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS,PATCH');
+    res.set('Access-Control-Allow-Headers', 'Content-Type,Authorization');
+    res.set('Access-Control-Expose-Headers', 'Content-Type');
+    console.log('[CORS] Headers set for origin:', origin);
+  }
+
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+
+  next();
+});
+
+/**
+ * -------------------------
+ * BODY PARSING
+ * -------------------------
+ */
 app.use(express.json({ limit: '15mb' }));
 app.use(express.urlencoded({ extended: true, limit: '15mb' }));
 
-// Initialize database on first request
+/**
+ * -------------------------
+ * DATABASE INIT (KEEPED)
+ * -------------------------
+ */
 let dbInitialized = false;
 
 async function initializeDatabase() {
   if (dbInitialized) return;
-  
+
   try {
     await initializeDynamoDBTable();
     await seedInitialData();
@@ -54,7 +115,9 @@ async function initializeDatabase() {
   }
 }
 
-// Database initialization middleware - must come BEFORE routes
+/**
+ * DB INIT MIDDLEWARE (KEEPED)
+ */
 app.use(async (req, res, next) => {
   console.log('[Express] Incoming request:', {
     method: req.method,
@@ -62,6 +125,7 @@ app.use(async (req, res, next) => {
     originalUrl: req.originalUrl,
     baseUrl: req.baseUrl,
   });
+
   try {
     await initializeDatabase();
     next();
@@ -70,24 +134,51 @@ app.use(async (req, res, next) => {
   }
 });
 
-// Routes
+/**
+ * -------------------------
+ * ROUTES
+ * -------------------------
+ */
 app.use('/api', apiRouter);
 
-// Health check endpoint
+/**
+ * HEALTH
+ */
 app.get('/health', (req, res) => {
+  console.log('[Express] Health check');
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Root endpoint
+/**
+ * ROOT
+ */
 app.get('/', (req, res) => {
+  console.log('[Express] Root endpoint hit');
   res.json({ message: 'GOSH Backend API', version: '0.2.0', status: 'running' });
 });
 
-// Error handler
-app.use(errorHandler);
+/**
+ * -------------------------
+ * ERROR HANDLER
+ * -------------------------
+ */
+app.use((err, req, res, next) => {
+  console.error('[Express] ERROR:', err);
 
-// 404 handler for any undefined routes
+  res.status(500).json({
+    success: false,
+    message: err.message || 'Internal server error',
+  });
+});
+
+/**
+ * -------------------------
+ * 404 HANDLER
+ * -------------------------
+ */
 app.use((req, res) => {
+  console.log('[Express] 404 Not Found:', req.method, req.path);
+
   res.status(404).json({
     success: false,
     message: `Route not found: ${req.method} ${req.path}`,

@@ -3,7 +3,7 @@
  * Handles file uploads to S3 with presigned URLs
  */
 
-import { awsConfig, getApiUrl } from '../aws-config';
+import { awsConfig, getApiUrl, getS3FileUrl } from '../aws-config';
 
 interface UploadResponse {
   success: boolean;
@@ -14,6 +14,7 @@ interface UploadResponse {
 
 /**
  * Request a presigned URL from backend to upload a file to S3
+ * Uses the /api/uploads/presigned-url endpoint routed through CloudFront
  */
 export async function getPresignedUploadUrl(
   fileName: string,
@@ -103,6 +104,7 @@ export async function uploadFileToS3(
 
 /**
  * Complete file upload flow: get presigned URL and upload file
+ * Returns CloudFront URL with /homepage-cards/* pattern for image serving
  */
 export async function uploadFileToS3Complete(
   file: File,
@@ -133,13 +135,15 @@ export async function uploadFileToS3Complete(
       return uploadResponse;
     }
 
-    // Step 3: Return the S3 URL (key is in presignedResponse.message)
-    const s3Url = `https://${awsConfig.uploadsBucket}.s3.${awsConfig.awsRegion}.amazonaws.com/${presignedResponse.message}`;
+    // Step 3: Return the CloudFront S3 URL with /homepage-cards/* pattern
+    // getS3FileUrl will use CloudFront with /homepage-cards/ prefix
+    const s3Key = presignedResponse.message; // The S3 key from presigned response
+    const s3Url = getS3FileUrl(s3Key);
     console.log('[S3] Upload complete. URL:', s3Url);
     return {
       success: true,
       url: s3Url,
-      message: presignedResponse.message, // Return the S3 key
+      message: s3Key, // Return the S3 key
     };
   } catch (error) {
     console.error('[S3] Complete upload flow failed:', error);

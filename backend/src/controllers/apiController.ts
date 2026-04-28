@@ -57,6 +57,27 @@ export async function getQuotationRequests(req: Request, res: Response) {
   res.json({ success: true, data: quotations });
 }
 
+export async function updateQuotationStatus(req: Request, res: Response) {
+  try {
+    const id = req.params.id;
+    const { status } = req.body;
+
+    if (!status || !['pending', 'reviewed', 'quoted', 'rejected'].includes(status)) {
+      return res.status(400).json({ success: false, message: 'Invalid status' });
+    }
+
+    const quotation = await service.updateQuotationStatus(id, status);
+    if (!quotation) {
+      return res.status(404).json({ success: false, message: 'Quotation not found' });
+    }
+
+    res.json({ success: true, data: quotation });
+  } catch (error) {
+    console.error('[Controller] Error updating quotation status:', error);
+    res.status(500).json({ success: false, message: `Failed to update quotation status: ${String(error)}` });
+  }
+}
+
 export async function postHomepageCard(req: Request, res: Response) {
   const card = await service.createHomepageCard(req.body);
   res.status(201).json({ success: true, data: card });

@@ -12,6 +12,7 @@ router.post('/demo-requests', asyncHandler(controller.postDemoRequest));
 router.post('/discussions', asyncHandler(controller.postDiscussionRequest));
 router.post('/quotation-requests', asyncHandler(controller.postQuotationRequest));
 router.get('/admin/quotation-requests', authenticateAdmin, asyncHandler(controller.getQuotationRequests));
+router.put('/admin/quotation-requests/:id', authenticateAdmin, asyncHandler(controller.updateQuotationStatus));
 router.post('/payments', asyncHandler(controller.postPayment));
 router.post('/hosting-requests', asyncHandler(controller.postHostingRequest));
 router.get('/homepage', asyncHandler(controller.getHomepageData));
