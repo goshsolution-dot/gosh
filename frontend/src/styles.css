@@ -152,6 +152,16 @@ main {
 @media (max-width: 900px) {
   .nav-menu-toggle {
     display: block;
+    background: #25D366;
+    border-color: #25D366;
+    color: white;
+    font-weight: 700;
+    font-size: 1.2rem;
+    padding: 0.8rem 1rem;
+  }
+  .nav-menu-toggle:hover {
+    background: #1f8d52;
+    border-color: #1f8d52;
   }
   .header-nav {
     display: none;

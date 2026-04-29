@@ -333,7 +333,12 @@ function HomePage() {
                         className={`alternating-card ${isActive ? 'active' : ''}`}
                         style={{
                           transform: `translateX(${(index - carouselIndex) * 100}%)`,
-                          transition: 'transform 0.5s ease-in-out'
+                          transition: 'transform 0.5s ease-in-out',
+                          cursor: 'pointer'
+                        }}
+                        onClick={() => {
+                          setExpandedCardId(card.id);
+                          setCurrentImageIndex(0);
                         }}
                       >
                         <div className="preview-card-content">
@@ -353,7 +358,8 @@ function HomePage() {
                           <div className="preview-card-actions">
                             <button
                               className="btn-preview-demo"
-                              onClick={() => {
+                              onClick={(e) => {
+                                e.stopPropagation();
                                 setExpandedCardId(card.id);
                                 setCurrentImageIndex(0);
                               }}
@@ -622,7 +628,13 @@ function HomePage() {
                           {card.badgeText && <span className="card-mpesa-badge">{card.badgeText}</span>}
                           <div className="card-actions">
                             {card.demoLink ? (
-                              <a href={card.demoLink} className="btn-demo" target="_blank" rel="noreferrer">
+                              <a 
+                                href={card.demoLink} 
+                                className="btn-demo" 
+                                target="_blank" 
+                                rel="noreferrer"
+                                onClick={(e) => e.stopPropagation()}
+                              >
                                 Live Demo →
                               </a>
                             ) : (
@@ -756,6 +768,10 @@ function HomePage() {
                   {zoomedImage && (
                     <div
                       className="zoom-modal"
+                      tabIndex={0}
+                      autoFocus
+                      role="dialog"
+                      aria-label="Zoomed image viewer"
                       style={{
                         position: 'fixed',
                         top: 0,
@@ -767,12 +783,19 @@ function HomePage() {
                         alignItems: 'center',
                         justifyContent: 'center',
                         zIndex: 2000,
+                        outline: 'none'
                       }}
                       onClick={() => setZoomedImage(null)}
                       onKeyDown={(e) => {
                         if (e.key === 'Escape') setZoomedImage(null);
-                        if (e.key === 'ArrowLeft') handlePrevImage();
-                        if (e.key === 'ArrowRight') handleNextImage();
+                        if (e.key === 'ArrowLeft') {
+                          e.preventDefault();
+                          handlePrevImage();
+                        }
+                        if (e.key === 'ArrowRight') {
+                          e.preventDefault();
+                          handleNextImage();
+                        }
                       }}
                     >
                       <div
@@ -787,7 +810,9 @@ function HomePage() {
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              handlePrevImage();
+                              const newIndex = (currentImageIndex - 1 + expandedCard.images.length) % expandedCard.images.length;
+                              setCurrentImageIndex(newIndex);
+                              setZoomedImage(expandedCard.images[newIndex]);
                             }}
                             style={{
                               position: 'fixed',
@@ -837,7 +862,9 @@ function HomePage() {
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleNextImage();
+                              const newIndex = (currentImageIndex + 1) % expandedCard.images.length;
+                              setCurrentImageIndex(newIndex);
+                              setZoomedImage(expandedCard.images[newIndex]);
                             }}
                             style={{
                               position: 'fixed',
